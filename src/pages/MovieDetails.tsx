@@ -1,16 +1,39 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Star, Clock, Calendar, Check } from 'lucide-react';
+import { ArrowLeft, Play, Star, Clock, Calendar, Check, Loader2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
-import { getMovieById, movies } from '@/data/movies';
+import { useMovie, useMoviesByGenre } from '@/hooks/useMovies';
+import { useRentals, useCreateRental } from '@/hooks/useRentals';
+import { useAuth } from '@/contexts/AuthContext';
 import { MovieCarousel } from '@/components/MovieCarousel';
 import { toast } from 'sonner';
-import { useRentals } from '@/hooks/useRentals';
 
 export default function MovieDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const movie = getMovieById(id || '');
+  const { isAuthenticated } = useAuth();
+  
+  const { data: movie, isLoading } = useMovie(id || '');
+  const { data: rentals } = useRentals();
+  const createRental = useCreateRental();
+
+  const alreadyRented = rentals?.some(
+    r => r.movieId === id && r.status === 'active'
+  ) ?? false;
+
+  const { data: relatedMovies } = useMoviesByGenre(movie?.genre || '');
+  const filteredRelated = relatedMovies?.filter(m => m.id !== id)?.slice(0, 6) ?? [];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 pt-24 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+        </div>
+      </div>
+    );
+  }
 
   if (!movie) {
     return (
@@ -24,18 +47,16 @@ export default function MovieDetails() {
     );
   }
 
-  const { addRental, isRented } = useRentals();
-  const alreadyRented = isRented(movie.id);
-
   const handleRent = () => {
+    if (!isAuthenticated) {
+      toast.error('Faça login para alugar filmes');
+      navigate('/auth');
+      return;
+    }
+    
     if (alreadyRented) return;
-    addRental(movie);
-    toast.success(`"${movie.title}" foi adicionado à sua lista de aluguel!`);
+    createRental.mutate(movie.id);
   };
-
-  const relatedMovies = movies
-    .filter((m) => m.genre === movie.genre && m.id !== movie.id)
-    .slice(0, 6);
 
   const trailerWatchUrl = movie.trailerUrl
     ? movie.trailerUrl
@@ -110,10 +131,15 @@ export default function MovieDetails() {
                 size="lg" 
                 className="gap-2 hover-glow" 
                 onClick={handleRent}
-                disabled={alreadyRented}
+                disabled={alreadyRented || createRental.isPending}
                 variant={alreadyRented ? "secondary" : "default"}
               >
-                {alreadyRented ? (
+                {createRental.isPending ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Processando...
+                  </>
+                ) : alreadyRented ? (
                   <>
                     <Check className="h-5 w-5" />
                     Já Alugado
@@ -121,7 +147,7 @@ export default function MovieDetails() {
                 ) : (
                   <>
                     <Play className="h-5 w-5 fill-current" />
-                    Alugar Agora
+                    Alugar por R$ {movie.rentalPrice?.toFixed(2) || '9,90'}
                   </>
                 )}
               </Button>
@@ -150,9 +176,9 @@ export default function MovieDetails() {
         </div>
 
         {/* Related Movies */}
-        {relatedMovies.length > 0 && (
+        {filteredRelated.length > 0 && (
           <div className="mt-16 pb-12">
-            <MovieCarousel title="Filmes Relacionados" movies={relatedMovies} />
+            <MovieCarousel title="Filmes Relacionados" movies={filteredRelated} />
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Movie } from '@/data/movies';
+import { Movie } from '@/types/api';
 import { MovieCard } from './MovieCard';
 import { Button } from '@/components/ui/button';
 

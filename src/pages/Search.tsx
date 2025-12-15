@@ -1,12 +1,15 @@
 import { useSearchParams } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { MovieCard } from '@/components/MovieCard';
-import { searchMovies } from '@/data/movies';
+import { useMovieSearch } from '@/hooks/useMovies';
+import { Loader2 } from 'lucide-react';
 
 export default function Search() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  const results = searchMovies(query);
+  
+  const { data: searchData, isLoading } = useMovieSearch(query);
+  const results = searchData?.data ?? [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -18,7 +21,11 @@ export default function Search() {
           {results.length} resultado(s) para "{query}"
         </p>
 
-        {results.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+          </div>
+        ) : results.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">Nenhum filme encontrado.</p>
           </div>

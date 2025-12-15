@@ -1,43 +1,57 @@
-import { useState, useEffect } from 'react';
-import { Movie } from '@/data/movies';
-
-const RENTALS_KEY = 'rentedMovies';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { rentalService } from '@/services/rentalService';
+import { toast } from 'sonner';
+import { ApiError } from '@/types/api';
 
 export function useRentals() {
-  const [rentedMovies, setRentedMovies] = useState<Movie[]>([]);
+  return useQuery({
+    queryKey: ['rentals', 'user'],
+    queryFn: () => rentalService.getUserRentals(),
+  });
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem(RENTALS_KEY);
-    if (stored) {
-      try {
-        setRentedMovies(JSON.parse(stored));
-      } catch {
-        setRentedMovies([]);
-      }
-    }
-  }, []);
+export function useRental(id: string) {
+  return useQuery({
+    queryKey: ['rental', id],
+    queryFn: () => rentalService.getById(id),
+    enabled: !!id,
+  });
+}
 
-  const addRental = (movie: Movie) => {
-    setRentedMovies((prev) => {
-      const exists = prev.some((m) => m.id === movie.id);
-      if (exists) return prev;
-      const updated = [...prev, movie];
-      localStorage.setItem(RENTALS_KEY, JSON.stringify(updated));
-      return updated;
-    });
-  };
+export function useCreateRental() {
+  const queryClient = useQueryClient();
 
-  const removeRental = (movieId: string) => {
-    setRentedMovies((prev) => {
-      const updated = prev.filter((m) => m.id !== movieId);
-      localStorage.setItem(RENTALS_KEY, JSON.stringify(updated));
-      return updated;
-    });
-  };
+  return useMutation({
+    mutationFn: (movieId: string) => rentalService.create({ movieId }),
+    onSuccess: (rental) => {
+      queryClient.invalidateQueries({ queryKey: ['rentals'] });
+      toast.success(`Filme alugado com sucesso! Devolução até ${new Date(rental.dueDate).toLocaleDateString('pt-BR')}`);
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || 'Erro ao alugar filme');
+    },
+  });
+}
 
-  const isRented = (movieId: string) => {
-    return rentedMovies.some((m) => m.id === movieId);
-  };
+export function useReturnRental() {
+  const queryClient = useQueryClient();
 
-  return { rentedMovies, addRental, removeRental, isRented };
+  return useMutation({
+    mutationFn: (rentalId: string) => rentalService.returnRental(rentalId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rentals'] });
+      toast.success('Filme devolvido com sucesso!');
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || 'Erro ao devolver filme');
+    },
+  });
+}
+
+export function useIsMovieRented(movieId: string) {
+  const { data: rentals } = useRentals();
+  
+  return rentals?.some(
+    rental => rental.movieId === movieId && rental.status === 'active'
+  ) ?? false;
 }
