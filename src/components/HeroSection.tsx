@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Play, Info } from 'lucide-react';
-import { Movie } from '@/data/movies';
+import { Movie } from '@/types/api';
 import { Button } from '@/components/ui/button';
 
 interface HeroSectionProps {

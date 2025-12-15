@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
-import { Movie } from '@/data/movies';
+import { Movie } from '@/types/api';
 
 interface MovieCardProps {
   movie: Movie;

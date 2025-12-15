@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function Header() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,7 +49,7 @@ export function Header() {
               <Film className="h-4 w-4" />
               Meus Aluguéis
             </Link>
-            {user?.isAdmin && (
+            {isAdmin && (
               <Link to="/admin" className="text-foreground/80 hover:text-foreground transition-colors">
                 Admin
               </Link>
@@ -102,7 +102,7 @@ export function Header() {
                     <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator />
-                  {user?.isAdmin && (
+                  {isAdmin && (
                     <DropdownMenuItem onClick={() => navigate('/admin')}>
                       <Settings className="mr-2 h-4 w-4" />
                       Painel Admin
@@ -157,7 +157,7 @@ export function Header() {
               <Film className="h-4 w-4" />
               Meus Aluguéis
             </Link>
-            {user?.isAdmin && (
+            {isAdmin && (
               <Link
                 to="/admin"
                 className="text-foreground/80 hover:text-foreground transition-colors"

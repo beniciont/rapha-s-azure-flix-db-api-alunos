@@ -25,7 +25,7 @@ const emptyMovie: Omit<Movie, 'id'> = {
 };
 
 export default function Admin() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [movies, setMovies] = useState<Movie[]>(initialMovies);
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
@@ -33,7 +33,7 @@ export default function Admin() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  if (!user?.isAdmin) {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
