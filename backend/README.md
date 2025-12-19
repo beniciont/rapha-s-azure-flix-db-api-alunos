@@ -8,11 +8,19 @@ Este guia vai te ensinar passo a passo como configurar e rodar o backend da apli
 
 1. [O que você vai precisar instalar](#1-o-que-você-vai-precisar-instalar)
 2. [Instalando o .NET 8](#2-instalando-o-net-8)
-3. [Instalando o Visual Studio 2022](#3-instalando-o-visual-studio-2022)
+3. Instalando o editor (escolha um):
+   - [3A. Visual Studio 2022](#3a-instalando-o-visual-studio-2022-opção-mais-fácil) (mais fácil, recomendado para iniciantes)
+   - [3B. VS Code](#3b-instalando-o-vs-code-opção-mais-leve) (mais leve, para quem já conhece)
 4. [Baixando o código do backend](#4-baixando-o-código-do-backend)
-5. [Abrindo o projeto no Visual Studio](#5-abrindo-o-projeto-no-visual-studio)
-6. [Configurando o banco de dados](#6-configurando-o-banco-de-dados)
-7. [Executando a API pela primeira vez](#7-executando-a-api-pela-primeira-vez)
+5. Abrindo o projeto:
+   - [5A. No Visual Studio](#5a-abrindo-o-projeto-no-visual-studio)
+   - [5B. No VS Code](#5b-abrindo-o-projeto-no-vs-code)
+6. Configurando o banco:
+   - [6A. Visual Studio](#6a-configurando-o-banco-de-dados-visual-studio)
+   - [6B. VS Code](#6b-configurando-o-banco-de-dados-vs-code)
+7. Executando a API:
+   - [7A. Visual Studio](#7a-executando-a-api-visual-studio)
+   - [7B. VS Code](#7b-executando-a-api-vs-code)
 8. [Testando a API com Swagger](#8-testando-a-api-com-swagger)
 9. [Publicando no Azure](#9-publicando-no-azure)
 10. [Conectando o Frontend](#10-conectando-o-frontend)
@@ -22,14 +30,29 @@ Este guia vai te ensinar passo a passo como configurar e rodar o backend da apli
 
 ## 1. O que você vai precisar instalar
 
-Antes de começar, você precisa instalar 2 programas no seu computador:
+Antes de começar, você precisa instalar 2 programas no seu computador.
 
-| Programa | Para que serve | Tamanho aproximado |
-|----------|---------------|-------------------|
+### 🤔 Visual Studio ou VS Code?
+
+Você pode escolher entre duas opções de editor:
+
+| Característica | Visual Studio 2022 | VS Code |
+|----------------|-------------------|---------|
+| **Tamanho** | ~8 GB | ~300 MB |
+| **Instalação** | 30-60 minutos | 5-10 minutos |
+| **Facilidade** | Mais fácil (tudo integrado) | Requer extensões |
+| **Para quem** | Iniciantes | Quem já conhece VS Code |
+
+**Minha recomendação**:
+- Se você **nunca programou antes** → Use o **Visual Studio 2022** (seção 3A)
+- Se você **já usa VS Code** → Use o **VS Code** (seção 3B)
+
+### Programas necessários
+
+| Programa | Para que serve | Tamanho |
+|----------|---------------|---------|
 | .NET 8 SDK | Permite rodar código .NET | ~500 MB |
-| Visual Studio 2022 | Editor para abrir e rodar o projeto | ~8 GB |
-
-**Tempo estimado**: 30-60 minutos para download e instalação
+| Visual Studio 2022 **OU** VS Code | Editor para abrir e rodar o projeto | ~8 GB ou ~300 MB |
 
 ---
 
@@ -81,15 +104,17 @@ Se aparecer um número começando com 8, a instalação foi um sucesso!
 
 ---
 
-## 3. Instalando o Visual Studio 2022
+## 3A. Instalando o Visual Studio 2022 (Opção mais fácil)
 
-### Passo 3.1: Acessar o site de download
+> ⏭️ **Se você preferir usar o VS Code**, pule para a [seção 3B](#3b-instalando-o-vs-code-opção-mais-leve)
+
+### Passo 3A.1: Acessar o site de download
 
 1. Abra seu navegador
 2. Digite na barra de endereço: **https://visualstudio.microsoft.com/pt-br/downloads/**
 3. Pressione **Enter**
 
-### Passo 3.2: Baixar a versão Community (gratuita)
+### Passo 3A.2: Baixar a versão Community (gratuita)
 
 1. Na página, procure **Visual Studio 2022**
 2. Abaixo de **Community** (versão gratuita), clique em **Download gratuito**
@@ -105,14 +130,14 @@ Se aparecer um número começando com 8, a instalação foi um sucesso!
    └─────────────────────────────────────────────┘
    ```
 
-### Passo 3.3: Executar o instalador
+### Passo 3A.3: Executar o instalador
 
 1. Abra a pasta **Downloads**
 2. Dê **duplo clique** no arquivo `VisualStudioSetup.exe`
 3. Clique em **Sim** se pedir permissão
 4. Aguarde carregar (pode demorar alguns minutos)
 
-### Passo 3.4: Selecionar os componentes
+### Passo 3A.4: Selecionar os componentes
 
 Uma janela vai abrir com várias opções. Você precisa marcar:
 
@@ -134,18 +159,79 @@ Uma janela vai abrir com várias opções. Você precisa marcar:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Passo 3.5: Iniciar a instalação
+### Passo 3A.5: Iniciar a instalação
 
 1. Clique no botão **Instalar enquanto baixa** (canto inferior direito)
 2. Aguarde a instalação (pode demorar 20-40 minutos dependendo da internet)
 3. Quando terminar, clique em **Iniciar**
 
-### Passo 3.6: Configuração inicial
+### Passo 3A.6: Configuração inicial
 
 1. Na primeira vez, vai pedir para fazer login com conta Microsoft
    - Você pode clicar em **Agora não, talvez mais tarde** para pular
 2. Escolha um tema de cores (Escuro ou Claro)
 3. Clique em **Iniciar Visual Studio**
+
+> ✅ **Pronto!** Agora pule para a [seção 4](#4-baixando-o-código-do-backend)
+
+---
+
+## 3B. Instalando o VS Code (Opção mais leve)
+
+> ⏭️ **Se você já instalou o Visual Studio 2022**, pule para a [seção 4](#4-baixando-o-código-do-backend)
+
+### Passo 3B.1: Baixar o VS Code
+
+1. Abra seu navegador
+2. Digite na barra de endereço: **https://code.visualstudio.com/**
+3. Clique no botão grande **Download for Windows**
+
+### Passo 3B.2: Instalar o VS Code
+
+1. Abra a pasta **Downloads**
+2. Dê **duplo clique** no arquivo `VSCodeUserSetup-xxx.exe`
+3. Aceite os termos e clique em **Próximo** várias vezes
+4. Marque a opção **Adicionar ao PATH** (importante!)
+5. Clique em **Instalar**
+6. Clique em **Concluir**
+
+### Passo 3B.3: Instalar a extensão C#
+
+1. Abra o **VS Code**
+2. Clique no ícone de **Extensões** na barra lateral esquerda (ou pressione `Ctrl+Shift+X`)
+
+   ```
+   ┌─────────────────────────────────────────┐
+   │  🔲  Explorer                            │
+   │  🔍  Pesquisar                           │
+   │  📦  Extensões  ← Clique aqui            │
+   │  ⚙️  Configurações                       │
+   └─────────────────────────────────────────┘
+   ```
+
+3. Na barra de pesquisa, digite: **C# Dev Kit**
+4. Clique na extensão **C# Dev Kit** (da Microsoft)
+5. Clique no botão **Install** (Instalar)
+
+   ```
+   ┌─────────────────────────────────────────────────────────────┐
+   │  🔍 C# Dev Kit                                              │
+   │                                                             │
+   │  C# Dev Kit                                                 │
+   │  Microsoft                           [Install]              │
+   │  ⭐⭐⭐⭐⭐ (milhões de downloads)        ↑                  │
+   │                                    Clique aqui              │
+   └─────────────────────────────────────────────────────────────┘
+   ```
+
+6. Aguarde a instalação (vai instalar automaticamente a extensão C# também)
+
+### Passo 3B.4: Reiniciar o VS Code
+
+1. Feche o VS Code
+2. Abra novamente
+
+> ✅ **Pronto!** Agora continue para a [seção 4](#4-baixando-o-código-do-backend)
 
 ---
 
@@ -173,15 +259,17 @@ Uma janela vai abrir com várias opções. Você precisa marcar:
 
 ---
 
-## 5. Abrindo o projeto no Visual Studio
+## 5A. Abrindo o projeto no Visual Studio
 
-### Passo 5.1: Abrir o Visual Studio
+> ⏭️ **Se você está usando VS Code**, pule para a [seção 5B](#5b-abrindo-o-projeto-no-vs-code)
+
+### Passo 5A.1: Abrir o Visual Studio
 
 1. Clique no menu **Iniciar** do Windows
 2. Digite **Visual Studio 2022**
 3. Clique para abrir
 
-### Passo 5.2: Abrir o projeto
+### Passo 5A.2: Abrir o projeto
 
 1. Na tela inicial, clique em **Abrir um projeto ou solução**
 
@@ -204,17 +292,48 @@ Uma janela vai abrir com várias opções. Você precisa marcar:
 4. Selecione o arquivo **RaphaMovies.API.csproj**
 5. Clique em **Abrir**
 
-### Passo 5.3: Aguardar o carregamento
+### Passo 5A.3: Aguardar o carregamento
 
 1. O Visual Studio vai carregar o projeto (pode demorar 1-2 minutos na primeira vez)
 2. Você vai ver uma barra de progresso na parte inferior
 3. Aguarde até aparecer "Pronto" na barra de status
 
+> ✅ **Pronto!** Agora pule para a [seção 6A](#6a-configurando-o-banco-de-dados-visual-studio)
+
 ---
 
-## 6. Configurando o banco de dados
+## 5B. Abrindo o projeto no VS Code
 
-### Passo 6.1: Abrir o Console do Gerenciador de Pacotes
+> ⏭️ **Se você está usando Visual Studio 2022**, pule para a [seção 6A](#6a-configurando-o-banco-de-dados-visual-studio)
+
+### Passo 5B.1: Abrir a pasta do projeto
+
+1. Abra o **VS Code**
+2. Clique em **File** (Arquivo) → **Open Folder** (Abrir Pasta)
+3. Navegue até a pasta onde você salvou o projeto
+4. Selecione a pasta `backend/RaphaMovies.API`
+5. Clique em **Selecionar Pasta**
+
+### Passo 5B.2: Confiar na pasta
+
+1. Uma janela vai aparecer perguntando se você confia nos autores
+2. Clique em **Yes, I trust the authors** (Sim, confio nos autores)
+
+### Passo 5B.3: Aguardar o carregamento
+
+1. O VS Code vai detectar o projeto .NET automaticamente
+2. Pode aparecer uma notificação pedindo para restaurar dependências
+3. Clique em **Restore** se aparecer
+
+> ✅ **Pronto!** Agora continue para a [seção 6B](#6b-configurando-o-banco-de-dados-vs-code)
+
+---
+
+## 6A. Configurando o banco de dados (Visual Studio)
+
+> ⏭️ **Se você está usando VS Code**, pule para a [seção 6B](#6b-configurando-o-banco-de-dados-vs-code)
+
+### Passo 6A.1: Abrir o Console do Gerenciador de Pacotes
 
 1. No menu superior, clique em **Ferramentas**
 2. Passe o mouse em **Gerenciador de Pacotes NuGet**
@@ -228,7 +347,7 @@ Uma janela vai abrir com várias opções. Você precisa marcar:
 
 4. Uma janela vai abrir na parte inferior do Visual Studio
 
-### Passo 6.2: Criar as tabelas do banco de dados
+### Passo 6A.2: Criar as tabelas do banco de dados
 
 1. Na janela do Console que abriu, digite:
    ```
@@ -237,7 +356,7 @@ Uma janela vai abrir com várias opções. Você precisa marcar:
 2. Pressione **Enter**
 3. Aguarde até aparecer "Build succeeded" (construção bem-sucedida)
 
-### Passo 6.3: Aplicar as tabelas no banco
+### Passo 6A.3: Aplicar as tabelas no banco
 
 1. Ainda no Console, digite:
    ```
@@ -252,11 +371,78 @@ Uma janela vai abrir com várias opções. Você precisa marcar:
 - 10 filmes de exemplo foram adicionados
 - Um usuário admin foi criado automaticamente
 
+> ✅ **Pronto!** Agora pule para a [seção 7A](#7a-executando-a-api-visual-studio)
+
 ---
 
-## 7. Executando a API pela primeira vez
+## 6B. Configurando o banco de dados (VS Code)
 
-### Passo 7.1: Iniciar a aplicação
+> ⏭️ **Se você está usando Visual Studio 2022**, pule para a [seção 7A](#7a-executando-a-api-visual-studio)
+
+### Passo 6B.1: Abrir o Terminal
+
+1. No VS Code, clique em **Terminal** no menu superior
+2. Clique em **New Terminal** (Novo Terminal)
+3. Um terminal vai abrir na parte inferior da tela
+
+   ```
+   ┌─────────────────────────────────────────┐
+   │  Terminal  ← Clique aqui                │
+   │  └── New Terminal                       │
+   └─────────────────────────────────────────┘
+   ```
+
+### Passo 6B.2: Instalar a ferramenta EF Core (apenas uma vez)
+
+1. No terminal, digite:
+   ```
+   dotnet tool install --global dotnet-ef
+   ```
+2. Pressione **Enter**
+3. Se aparecer "já está instalado", tudo bem, continue
+
+### Passo 6B.3: Restaurar as dependências
+
+1. No terminal, digite:
+   ```
+   dotnet restore
+   ```
+2. Pressione **Enter**
+3. Aguarde terminar
+
+### Passo 6B.4: Criar as tabelas do banco de dados
+
+1. No terminal, digite:
+   ```
+   dotnet ef migrations add InitialCreate
+   ```
+2. Pressione **Enter**
+3. Aguarde aparecer "Done"
+
+### Passo 6B.5: Aplicar as tabelas no banco
+
+1. No terminal, digite:
+   ```
+   dotnet ef database update
+   ```
+2. Pressione **Enter**
+3. Aguarde aparecer "Done"
+
+**O que aconteceu?**
+- Um banco de dados local chamado `RaphaMoviesDev` foi criado
+- As tabelas de usuários, filmes e aluguéis foram criadas
+- 10 filmes de exemplo foram adicionados
+- Um usuário admin foi criado automaticamente
+
+> ✅ **Pronto!** Agora continue para a [seção 7B](#7b-executando-a-api-vs-code)
+
+---
+
+## 7A. Executando a API (Visual Studio)
+
+> ⏭️ **Se você está usando VS Code**, pule para a [seção 7B](#7b-executando-a-api-vs-code)
+
+### Passo 7A.1: Iniciar a aplicação
 
 1. No topo do Visual Studio, procure um botão verde com uma seta ▶️
 2. Ao lado dele deve estar escrito **https** ou **IIS Express**
@@ -268,14 +454,14 @@ Uma janela vai abrir com várias opções. Você precisa marcar:
    └──────────────────────────────────────────────────┘
    ```
 
-### Passo 7.2: Aguardar o carregamento
+### Passo 7A.2: Aguardar o carregamento
 
 1. Uma janela do navegador vai abrir automaticamente
 2. Pode aparecer um aviso de segurança sobre certificado
    - Clique em **Avançado** e depois **Continuar mesmo assim**
 3. A página do Swagger vai carregar
 
-### Passo 7.3: Verificar se está funcionando
+### Passo 7A.3: Verificar se está funcionando
 
 Se você ver uma página parecida com esta, a API está funcionando:
 
@@ -294,6 +480,57 @@ Se você ver uma página parecida com esta, a API está funcionando:
 **Credenciais do administrador:**
 - **Email**: admin@raphamovies.com
 - **Senha**: Admin@123
+
+> ✅ **Pronto!** Agora pule para a [seção 8](#8-testando-a-api-com-swagger)
+
+---
+
+## 7B. Executando a API (VS Code)
+
+### Passo 7B.1: Iniciar a aplicação
+
+1. No terminal do VS Code (que você abriu antes), digite:
+   ```
+   dotnet run
+   ```
+2. Pressione **Enter**
+3. Aguarde aparecer algo como:
+   ```
+   info: Microsoft.Hosting.Lifetime[14]
+         Now listening on: https://localhost:5001
+         Now listening on: http://localhost:5000
+   ```
+
+### Passo 7B.2: Abrir o Swagger no navegador
+
+1. Abra seu navegador
+2. Digite na barra de endereço: **https://localhost:5001/swagger**
+3. Pressione **Enter**
+4. Se aparecer aviso de segurança, clique em **Avançado** → **Continuar**
+
+### Passo 7B.3: Verificar se está funcionando
+
+Se você ver uma página parecida com esta, a API está funcionando:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Rapha Movies API                                           │
+│                                                             │
+│  ▼ Admin                                                    │
+│  ▼ Auth                                                     │
+│  ▼ Movies                                                   │
+│  ▼ Rentals                                                  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Credenciais do administrador:**
+- **Email**: admin@raphamovies.com
+- **Senha**: Admin@123
+
+### Passo 7B.4: Parar a aplicação
+
+- Para parar a API, volte ao terminal e pressione **Ctrl + C**
 
 ---
 
