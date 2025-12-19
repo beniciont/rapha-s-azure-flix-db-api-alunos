@@ -1,185 +1,532 @@
-# Rapha Movies API - Backend .NET Core
+# 🎬 Rapha Movies API - Guia Completo para Iniciantes
 
-## 📋 Pré-requisitos
+Este guia vai te ensinar passo a passo como configurar e rodar o backend da aplicação Rapha Movies.
 
-Antes de começar, você precisa instalar:
+---
 
-1. **.NET 8 SDK** - [Download aqui](https://dotnet.microsoft.com/download/dotnet/8.0)
-2. **Visual Studio 2022** ou **VS Code** com extensão C#
-3. **SQL Server** (LocalDB para desenvolvimento ou Azure SQL para produção)
+## 📑 Índice
 
-## 🚀 Como Executar Localmente
+1. [O que você vai precisar instalar](#1-o-que-você-vai-precisar-instalar)
+2. [Instalando o .NET 8](#2-instalando-o-net-8)
+3. [Instalando o Visual Studio 2022](#3-instalando-o-visual-studio-2022)
+4. [Baixando o código do backend](#4-baixando-o-código-do-backend)
+5. [Abrindo o projeto no Visual Studio](#5-abrindo-o-projeto-no-visual-studio)
+6. [Configurando o banco de dados](#6-configurando-o-banco-de-dados)
+7. [Executando a API pela primeira vez](#7-executando-a-api-pela-primeira-vez)
+8. [Testando a API com Swagger](#8-testando-a-api-com-swagger)
+9. [Publicando no Azure](#9-publicando-no-azure)
+10. [Conectando o Frontend](#10-conectando-o-frontend)
+11. [Solução de Problemas](#11-solução-de-problemas)
 
-### 1. Abra o Terminal na pasta do projeto
+---
 
-```bash
-cd backend/RaphaMovies.API
+## 1. O que você vai precisar instalar
+
+Antes de começar, você precisa instalar 2 programas no seu computador:
+
+| Programa | Para que serve | Tamanho aproximado |
+|----------|---------------|-------------------|
+| .NET 8 SDK | Permite rodar código .NET | ~500 MB |
+| Visual Studio 2022 | Editor para abrir e rodar o projeto | ~8 GB |
+
+**Tempo estimado**: 30-60 minutos para download e instalação
+
+---
+
+## 2. Instalando o .NET 8
+
+### Passo 2.1: Acessar o site de download
+
+1. Abra seu navegador (Chrome, Edge, Firefox)
+2. Digite na barra de endereço: **https://dotnet.microsoft.com/download/dotnet/8.0**
+3. Pressione **Enter**
+
+### Passo 2.2: Baixar o instalador
+
+1. Na página que abrir, procure a seção **.NET 8.0 (LTS)**
+2. Clique no botão **Download .NET SDK x64** (para Windows)
+   
+   ```
+   ┌─────────────────────────────────────────────┐
+   │  .NET 8.0 (LTS)                             │
+   │                                             │
+   │  [Download .NET SDK x64]  ← Clique aqui     │
+   │                                             │
+   └─────────────────────────────────────────────┘
+   ```
+
+3. Um arquivo chamado algo como `dotnet-sdk-8.0.xxx-win-x64.exe` será baixado
+
+### Passo 2.3: Instalar
+
+1. Abra a pasta **Downloads** do seu computador
+2. Dê **duplo clique** no arquivo que você baixou
+3. Clique em **Sim** se aparecer uma janela perguntando permissão
+4. Na janela do instalador, clique em **Install**
+5. Aguarde a instalação (cerca de 2-3 minutos)
+6. Clique em **Close** quando terminar
+
+### Passo 2.4: Verificar se instalou corretamente
+
+1. Pressione as teclas **Windows + R** ao mesmo tempo
+2. Digite **cmd** e pressione **Enter**
+3. Na janela preta que abrir, digite:
+   ```
+   dotnet --version
+   ```
+4. Pressione **Enter**
+5. Deve aparecer algo como: `8.0.xxx`
+
+Se aparecer um número começando com 8, a instalação foi um sucesso!
+
+---
+
+## 3. Instalando o Visual Studio 2022
+
+### Passo 3.1: Acessar o site de download
+
+1. Abra seu navegador
+2. Digite na barra de endereço: **https://visualstudio.microsoft.com/pt-br/downloads/**
+3. Pressione **Enter**
+
+### Passo 3.2: Baixar a versão Community (gratuita)
+
+1. Na página, procure **Visual Studio 2022**
+2. Abaixo de **Community** (versão gratuita), clique em **Download gratuito**
+
+   ```
+   ┌─────────────────────────────────────────────┐
+   │  Visual Studio 2022                         │
+   │                                             │
+   │  Community          Pro          Enterprise │
+   │  [Download gratuito]                        │
+   │       ↑                                     │
+   │   Clique aqui                               │
+   └─────────────────────────────────────────────┘
+   ```
+
+### Passo 3.3: Executar o instalador
+
+1. Abra a pasta **Downloads**
+2. Dê **duplo clique** no arquivo `VisualStudioSetup.exe`
+3. Clique em **Sim** se pedir permissão
+4. Aguarde carregar (pode demorar alguns minutos)
+
+### Passo 3.4: Selecionar os componentes
+
+Uma janela vai abrir com várias opções. Você precisa marcar:
+
+1. **ASP.NET e desenvolvimento Web** ← OBRIGATÓRIO
+2. **Desenvolvimento do Azure** ← Opcional, mas recomendado
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Visual Studio Installer                                    │
+│                                                             │
+│  Cargas de trabalho                                         │
+│                                                             │
+│  ☑️ ASP.NET e desenvolvimento Web       ← Marque esta       │
+│  ☑️ Desenvolvimento do Azure            ← Marque esta       │
+│  ☐ Desenvolvimento para desktop .NET                        │
+│  ☐ Desenvolvimento móvel com .NET                           │
+│                                                             │
+│                              [Instalar enquanto baixa]      │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 2. Restaure as dependências
+### Passo 3.5: Iniciar a instalação
 
-```bash
-dotnet restore
+1. Clique no botão **Instalar enquanto baixa** (canto inferior direito)
+2. Aguarde a instalação (pode demorar 20-40 minutos dependendo da internet)
+3. Quando terminar, clique em **Iniciar**
+
+### Passo 3.6: Configuração inicial
+
+1. Na primeira vez, vai pedir para fazer login com conta Microsoft
+   - Você pode clicar em **Agora não, talvez mais tarde** para pular
+2. Escolha um tema de cores (Escuro ou Claro)
+3. Clique em **Iniciar Visual Studio**
+
+---
+
+## 4. Baixando o código do backend
+
+### Opção A: Se o projeto está no GitHub
+
+1. Acesse o repositório do projeto no GitHub
+2. Clique no botão verde **Code**
+3. Clique em **Download ZIP**
+4. Extraia o arquivo ZIP em uma pasta de sua escolha (ex: `C:\Projetos\`)
+
+### Opção B: Se você está usando o Lovable
+
+1. No Lovable, clique em **GitHub** no menu superior
+2. Faça a conexão com sua conta GitHub (se ainda não fez)
+3. O código será sincronizado automaticamente
+4. Clone o repositório para seu computador:
+   - Abra o **cmd** (Windows + R, digite cmd, Enter)
+   - Digite:
+     ```
+     cd C:\Projetos
+     git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+     ```
+
+---
+
+## 5. Abrindo o projeto no Visual Studio
+
+### Passo 5.1: Abrir o Visual Studio
+
+1. Clique no menu **Iniciar** do Windows
+2. Digite **Visual Studio 2022**
+3. Clique para abrir
+
+### Passo 5.2: Abrir o projeto
+
+1. Na tela inicial, clique em **Abrir um projeto ou solução**
+
+   ```
+   ┌─────────────────────────────────────────────────────────────┐
+   │  Visual Studio 2022                                         │
+   │                                                             │
+   │  Introdução                                                 │
+   │                                                             │
+   │  🔵 Clonar um repositório                                   │
+   │  📁 Abrir um projeto ou solução    ← Clique aqui           │
+   │  📁 Abrir uma pasta local                                   │
+   │  ➕ Criar um projeto                                        │
+   │                                                             │
+   └─────────────────────────────────────────────────────────────┘
+   ```
+
+2. Navegue até a pasta onde você salvou o projeto
+3. Entre na pasta `backend` → `RaphaMovies.API`
+4. Selecione o arquivo **RaphaMovies.API.csproj**
+5. Clique em **Abrir**
+
+### Passo 5.3: Aguardar o carregamento
+
+1. O Visual Studio vai carregar o projeto (pode demorar 1-2 minutos na primeira vez)
+2. Você vai ver uma barra de progresso na parte inferior
+3. Aguarde até aparecer "Pronto" na barra de status
+
+---
+
+## 6. Configurando o banco de dados
+
+### Passo 6.1: Abrir o Console do Gerenciador de Pacotes
+
+1. No menu superior, clique em **Ferramentas**
+2. Passe o mouse em **Gerenciador de Pacotes NuGet**
+3. Clique em **Console do Gerenciador de Pacotes**
+
+   ```
+   Ferramentas
+   └── Gerenciador de Pacotes NuGet
+       └── Console do Gerenciador de Pacotes  ← Clique aqui
+   ```
+
+4. Uma janela vai abrir na parte inferior do Visual Studio
+
+### Passo 6.2: Criar as tabelas do banco de dados
+
+1. Na janela do Console que abriu, digite:
+   ```
+   Add-Migration InitialCreate
+   ```
+2. Pressione **Enter**
+3. Aguarde até aparecer "Build succeeded" (construção bem-sucedida)
+
+### Passo 6.3: Aplicar as tabelas no banco
+
+1. Ainda no Console, digite:
+   ```
+   Update-Database
+   ```
+2. Pressione **Enter**
+3. Aguarde até aparecer "Done" (feito)
+
+**O que aconteceu?**
+- Um banco de dados local chamado `RaphaMoviesDev` foi criado
+- As tabelas de usuários, filmes e aluguéis foram criadas
+- 10 filmes de exemplo foram adicionados
+- Um usuário admin foi criado automaticamente
+
+---
+
+## 7. Executando a API pela primeira vez
+
+### Passo 7.1: Iniciar a aplicação
+
+1. No topo do Visual Studio, procure um botão verde com uma seta ▶️
+2. Ao lado dele deve estar escrito **https** ou **IIS Express**
+3. Clique no botão verde ▶️ (ou pressione **F5**)
+
+   ```
+   ┌──────────────────────────────────────────────────┐
+   │  [▶️ https ▼]   ← Clique no botão verde          │
+   └──────────────────────────────────────────────────┘
+   ```
+
+### Passo 7.2: Aguardar o carregamento
+
+1. Uma janela do navegador vai abrir automaticamente
+2. Pode aparecer um aviso de segurança sobre certificado
+   - Clique em **Avançado** e depois **Continuar mesmo assim**
+3. A página do Swagger vai carregar
+
+### Passo 7.3: Verificar se está funcionando
+
+Se você ver uma página parecida com esta, a API está funcionando:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Rapha Movies API                                           │
+│                                                             │
+│  ▼ Admin                                                    │
+│  ▼ Auth                                                     │
+│  ▼ Movies                                                   │
+│  ▼ Rentals                                                  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 3. Configure o banco de dados
-
-O projeto usa LocalDB por padrão em desenvolvimento. Crie a migração inicial:
-
-```bash
-dotnet ef migrations add InitialCreate
-dotnet ef database update
-```
-
-### 4. Execute a aplicação
-
-```bash
-dotnet run
-```
-
-A API estará disponível em:
-- **HTTP**: http://localhost:5000
-- **HTTPS**: https://localhost:5001
-- **Swagger**: https://localhost:5001/swagger
-
-## 🔐 Credenciais Padrão
-
-Após a primeira execução, um usuário admin é criado automaticamente:
-
+**Credenciais do administrador:**
 - **Email**: admin@raphamovies.com
 - **Senha**: Admin@123
 
-## 📁 Estrutura do Projeto
+---
 
-```
-RaphaMovies.API/
-├── Controllers/          # Endpoints da API
-│   ├── AuthController.cs
-│   ├── MoviesController.cs
-│   ├── RentalsController.cs
-│   └── AdminController.cs
-├── Data/                 # Contexto do banco
-│   └── ApplicationDbContext.cs
-├── DTOs/                 # Objetos de transferência
-│   ├── AuthDTOs.cs
-│   ├── MovieDTOs.cs
-│   ├── RentalDTOs.cs
-│   └── AdminDTOs.cs
-├── Models/               # Entidades do banco
-│   ├── User.cs
-│   ├── UserRole.cs
-│   ├── Movie.cs
-│   └── Rental.cs
-├── Services/             # Lógica de negócio
-│   ├── AuthService.cs
-│   ├── MovieService.cs
-│   ├── RentalService.cs
-│   └── AdminService.cs
-├── appsettings.json      # Configurações
-└── Program.cs            # Ponto de entrada
-```
+## 8. Testando a API com Swagger
 
-## ⚙️ Configuração
+O Swagger é uma ferramenta que permite testar a API diretamente no navegador.
 
-### appsettings.json
+### Passo 8.1: Testar o login
 
-Edite o arquivo `appsettings.json` para configurar:
+1. Na página do Swagger, clique em **Auth** para expandir
+2. Clique em **POST /api/auth/login**
+3. Clique no botão **Try it out** (lado direito)
+4. No campo de texto, substitua o conteúdo por:
+   ```json
+   {
+     "email": "admin@raphamovies.com",
+     "password": "Admin@123"
+   }
+   ```
+5. Clique no botão azul **Execute**
+
+### Passo 8.2: Verificar a resposta
+
+Se o login foi bem-sucedido, você verá uma resposta assim:
 
 ```json
 {
-  "ConnectionStrings": {
-    "DefaultConnection": "SUA_CONNECTION_STRING"
+  "user": {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "email": "admin@raphamovies.com",
+    "name": "Administrador"
   },
-  "Jwt": {
-    "Key": "SUA_CHAVE_JWT_SUPER_SECRETA",
-    "Issuer": "RaphaMovies",
-    "Audience": "RaphaMoviesApp"
-  },
-  "Cors": {
-    "AllowedOrigins": [
-      "http://localhost:5173",
-      "https://seu-frontend.com"
-    ]
-  }
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "roles": ["admin"]
 }
 ```
 
-## 🌐 Endpoints da API
+### Passo 8.3: Testar listagem de filmes
 
-### Autenticação
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| POST | /api/auth/login | Login |
-| POST | /api/auth/register | Registro |
-| POST | /api/auth/logout | Logout |
-| POST | /api/auth/refresh | Refresh token |
-| GET | /api/auth/me | Usuário atual |
+1. Clique em **Movies** para expandir
+2. Clique em **GET /api/movies**
+3. Clique em **Try it out**
+4. Clique em **Execute**
+5. Você verá a lista de 10 filmes cadastrados
 
-### Filmes
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | /api/movies | Listar filmes |
-| GET | /api/movies/{id} | Buscar por ID |
-| GET | /api/movies/genre/{genre} | Por gênero |
-| GET | /api/movies/search | Pesquisar |
-| GET | /api/movies/genres | Listar gêneros |
-| POST | /api/movies | Criar (admin) |
-| PUT | /api/movies/{id} | Atualizar (admin) |
-| DELETE | /api/movies/{id} | Remover (admin) |
+---
 
-### Aluguéis
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | /api/rentals/my-rentals | Meus aluguéis |
-| GET | /api/rentals/{id} | Buscar por ID |
-| POST | /api/rentals | Criar aluguel |
-| POST | /api/rentals/{id}/return | Devolver |
+## 9. Publicando no Azure
 
-### Admin
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | /api/admin/stats | Estatísticas |
-| GET | /api/admin/users | Listar usuários |
-| PUT | /api/admin/users/{id} | Atualizar usuário |
-| DELETE | /api/admin/users/{id} | Remover usuário |
+### Passo 9.1: Criar os recursos no Azure
 
-## 🚀 Deploy no Azure
+Siga o guia detalhado em `docs/AZURE_DEPLOYMENT.md` para:
+1. Criar um **Resource Group**
+2. Criar um **Azure SQL Database**
+3. Criar um **App Service**
 
-### 1. Criar recursos no Azure
-- Azure SQL Database
-- Azure App Service (Windows)
+### Passo 9.2: Configurar a Connection String
 
-### 2. Configurar Connection String no Azure
-No App Service > Configuration > Connection strings:
-- Nome: `DefaultConnection`
-- Valor: sua connection string do Azure SQL
-- Tipo: `SQLAzure`
+1. No Portal do Azure, acesse seu **App Service**
+2. No menu lateral, clique em **Configuração**
+3. Clique em **Cadeias de conexão**
+4. Clique em **+ Nova cadeia de conexão**
+5. Preencha:
+   - **Nome**: `DefaultConnection`
+   - **Valor**: (copie do Azure SQL Database)
+   - **Tipo**: `SQLAzure`
+6. Clique em **OK** e depois em **Salvar**
 
-### 3. Publicar via Visual Studio
-1. Clique com botão direito no projeto
-2. Publish > Azure > Azure App Service
-3. Selecione seu App Service
-4. Publicar
+### Passo 9.3: Publicar pelo Visual Studio
 
-### 4. Ou via CLI
-```bash
-dotnet publish -c Release
-az webapp deploy --resource-group MeuGrupo --name MeuAppService --src-path ./publish
-```
+1. No Visual Studio, clique com botão direito no projeto **RaphaMovies.API**
+2. Clique em **Publicar...**
 
-## 🔧 Solução de Problemas
+   ```
+   RaphaMovies.API (botão direito)
+   └── Publicar...  ← Clique aqui
+   ```
 
-### Erro de conexão com banco
-- Verifique se o SQL Server está rodando
-- Confirme a connection string no appsettings.json
+3. Selecione **Azure** e clique em **Avançar**
+4. Selecione **Serviço de Aplicativo do Azure (Windows)**
+5. Faça login na sua conta Azure se necessário
+6. Selecione seu App Service na lista
+7. Clique em **Concluir**
+8. Clique no botão **Publicar**
 
-### Erro de CORS
-- Adicione a URL do frontend em `Cors:AllowedOrigins`
+### Passo 9.4: Aguardar a publicação
 
-### Erro de autenticação
-- Verifique se a chave JWT tem pelo menos 32 caracteres
-- Confirme que o token está sendo enviado no header `Authorization: Bearer {token}`
+1. O Visual Studio vai compilar e enviar o código para o Azure
+2. Isso pode demorar 2-5 minutos
+3. Quando terminar, o navegador vai abrir com a URL da sua API
 
-## 📞 Suporte
+### Passo 9.5: Testar a API no Azure
 
-Se tiver dúvidas, abra uma issue no repositório ou entre em contato.
+1. Adicione `/swagger` ao final da URL
+   - Exemplo: `https://minha-api.azurewebsites.net/swagger`
+2. Teste o login como fez localmente
+
+---
+
+## 10. Conectando o Frontend
+
+Depois que a API estiver funcionando no Azure:
+
+### Passo 10.1: Copiar a URL da API
+
+1. No Portal do Azure, acesse seu App Service
+2. Na página principal, copie a **URL** (algo como `https://raphamovies-api.azurewebsites.net`)
+
+### Passo 10.2: Configurar no Lovable
+
+1. Acesse o projeto no Lovable
+2. Vá em **Settings** (Configurações)
+3. Procure por **Environment Variables** ou **Variáveis de Ambiente**
+4. Adicione:
+   - **Nome**: `VITE_API_URL`
+   - **Valor**: `https://sua-api.azurewebsites.net/api`
+5. Salve as configurações
+
+### Passo 10.3: Testar a aplicação
+
+1. Acesse o frontend da aplicação
+2. Tente fazer login com as credenciais do admin
+3. Navegue pelo catálogo de filmes
+
+---
+
+## 11. Solução de Problemas
+
+### ❌ Erro: "The term 'dotnet' is not recognized"
+
+**Problema**: O .NET não foi instalado corretamente
+
+**Solução**:
+1. Reinstale o .NET 8 SDK
+2. Reinicie o computador
+3. Tente novamente
+
+---
+
+### ❌ Erro: "Unable to connect to SQL Server"
+
+**Problema**: O banco de dados local não está acessível
+
+**Solução**:
+1. Abra o **SQL Server Configuration Manager**
+2. Verifique se o **SQL Server (LOCALDB)** está rodando
+3. Se não estiver, clique com botão direito e selecione **Iniciar**
+
+---
+
+### ❌ Erro: "A connection with the server could not be established"
+
+**Problema**: O firewall está bloqueando a conexão
+
+**Solução para Azure SQL**:
+1. No Portal do Azure, acesse o SQL Server
+2. Clique em **Rede**
+3. Adicione seu IP nas regras de firewall
+
+---
+
+### ❌ Erro: "Login failed for user"
+
+**Problema**: Credenciais do banco incorretas
+
+**Solução**:
+1. Verifique o usuário e senha no `appsettings.json`
+2. Confirme que correspondem ao que você configurou no Azure SQL
+
+---
+
+### ❌ Erro: "CORS policy blocked"
+
+**Problema**: O frontend não está autorizado a acessar a API
+
+**Solução**:
+1. Abra `appsettings.json`
+2. Adicione a URL do seu frontend em `Cors:AllowedOrigins`:
+   ```json
+   "Cors": {
+     "AllowedOrigins": [
+       "https://seu-frontend.lovable.app",
+       "https://seu-dominio.com"
+     ]
+   }
+   ```
+3. Republique a aplicação
+
+---
+
+### ❌ A página do Swagger não abre
+
+**Problema**: A aplicação não está rodando
+
+**Solução**:
+1. Verifique se há erros na janela **Saída** do Visual Studio
+2. Pare a aplicação (Shift + F5)
+3. Limpe a solução: **Compilar** → **Limpar Solução**
+4. Inicie novamente (F5)
+
+---
+
+### ❌ Erro 500 ao fazer requisições
+
+**Problema**: Erro interno na API
+
+**Solução**:
+1. Verifique os logs no Visual Studio (janela **Saída**)
+2. Procure a mensagem de erro específica
+3. Verifique se as migrações foram aplicadas
+
+---
+
+## 📞 Precisa de mais ajuda?
+
+Se você ainda tiver problemas:
+
+1. **Copie a mensagem de erro completa**
+2. **Anote o que você estava tentando fazer**
+3. **Volte ao Lovable e peça ajuda** - cole o erro e eu vou te ajudar a resolver!
+
+---
+
+## 📋 Resumo dos comandos
+
+| Comando | O que faz |
+|---------|-----------|
+| `dotnet --version` | Verifica se o .NET está instalado |
+| `Add-Migration InitialCreate` | Cria o script do banco de dados |
+| `Update-Database` | Aplica as tabelas no banco |
+| `F5` ou botão ▶️ | Inicia a aplicação |
+| `Shift + F5` | Para a aplicação |
+
+---
+
+**Parabéns!** 🎉 Se você chegou até aqui, a API está funcionando!
