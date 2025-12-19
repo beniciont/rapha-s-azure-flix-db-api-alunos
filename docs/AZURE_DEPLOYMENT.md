@@ -1,649 +1,425 @@
-# 🎬 Rapha Movies - Guia Completo de Implantação no Azure
+# 🎬 Rapha Movies - Guia de Deploy no Azure App Service
 
-Este documento contém todas as instruções necessárias para configurar e implantar o projeto Rapha Movies utilizando os serviços do Microsoft Azure.
+Este documento descreve como implantar o projeto usando **Azure App Service (Web App)** e **Azure SQL Database**.
 
 ---
 
 ## 📑 Índice
 
-1. [Visão Geral da Arquitetura](#1-visão-geral-da-arquitetura)
+1. [Arquitetura](#1-arquitetura)
 2. [Pré-requisitos](#2-pré-requisitos)
-3. [Exportar o Código do Lovable](#3-exportar-o-código-do-lovable)
-4. [Criar Conta no Azure](#4-criar-conta-no-azure)
-5. [Configurar Azure Blob Storage](#5-configurar-azure-blob-storage)
-6. [Implantar no Azure Static Web Apps](#6-implantar-no-azure-static-web-apps)
-7. [Configurar Domínio Personalizado](#7-configurar-domínio-personalizado-opcional)
-8. [Gerenciar Imagens no Blob Storage](#8-gerenciar-imagens-no-blob-storage)
-9. [Custos Estimados](#9-custos-estimados)
-10. [Solução de Problemas](#10-solução-de-problemas)
+3. [Azure SQL Database](#3-azure-sql-database)
+4. [Backend .NET Core (Web App)](#4-backend-net-core-web-app)
+5. [Frontend React (Web App)](#5-frontend-react-web-app)
+6. [GitHub Actions CI/CD](#6-github-actions-cicd)
+7. [Configurações Adicionais](#7-configurações-adicionais)
+8. [Troubleshooting](#8-troubleshooting)
 
 ---
 
-## 1. Visão Geral da Arquitetura
+## 1. Arquitetura
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         USUÁRIO                                  │
-│                      (Navegador Web)                             │
-└─────────────────────────┬───────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                 AZURE STATIC WEB APPS                            │
-│              (Frontend React/Vite)                               │
-│                                                                  │
-│  • Páginas: Home, Catálogo, Detalhes, Login, Admin              │
-│  • Componentes: Header, MovieCard, Carousel, Hero               │
-│  • Autenticação: Mock (simulada no frontend)                    │
-│  • Dados: Mock (JSON estático)                                  │
-└─────────────────────────┬───────────────────────────────────────┘
-                          │
-                          │ URLs das imagens
-                          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                 AZURE BLOB STORAGE                               │
-│              (Armazenamento de Imagens)                          │
-│                                                                  │
-│  Container: movies/                                              │
-│  ├── posters/                                                   │
-│  │   ├── interestelar.jpg                                       │
-│  │   ├── matrix.jpg                                             │
-│  │   └── ...                                                    │
-│  └── backdrops/                                                 │
-│      ├── interestelar.jpg                                       │
-│      └── ...                                                    │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Frontend      │────▶│   Backend API   │────▶│  Azure SQL      │
+│   Web App       │     │   Web App       │     │  Database       │
+│   React/Vite    │     │   .NET 8        │     │  SQL Server     │
+│   (IIS)         │     │   (IIS)         │     │                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
-### Tecnologias Utilizadas
-
-| Camada | Tecnologia | Serviço Azure |
-|--------|------------|---------------|
-| Frontend | React 18 + TypeScript + Vite | Azure Static Web Apps |
-| Estilização | Tailwind CSS + shadcn/ui | - |
-| Imagens | JPG/PNG/WebP | Azure Blob Storage |
-| Roteamento | React Router DOM | - |
+| Componente | Tecnologia | Serviço Azure |
+|------------|------------|---------------|
+| Frontend | React + Vite + TypeScript | Azure App Service (Windows) |
+| Backend | .NET 8 / ASP.NET Core | Azure App Service (Windows) |
+| Banco de Dados | SQL Server | Azure SQL Database |
+| CI/CD | GitHub Actions | - |
 
 ---
 
 ## 2. Pré-requisitos
 
-### Ferramentas Necessárias
+### Ferramentas
 
 | Ferramenta | Versão | Download |
 |------------|--------|----------|
-| Node.js | 18+ | [nodejs.org](https://nodejs.org/) |
+| Node.js | 20+ | [nodejs.org](https://nodejs.org/) |
+| .NET SDK | 8.0+ | [dotnet.microsoft.com](https://dotnet.microsoft.com/download) |
 | Git | 2.40+ | [git-scm.com](https://git-scm.com/) |
-| VS Code | Última | [code.visualstudio.com](https://code.visualstudio.com/) |
 | Azure CLI | 2.50+ | [docs.microsoft.com/cli/azure](https://docs.microsoft.com/cli/azure/install-azure-cli) |
 
-### Contas Necessárias
+### Contas
 
-- [x] Conta GitHub (gratuita): [github.com](https://github.com/)
-- [x] Conta Microsoft Azure (gratuita): [azure.microsoft.com](https://azure.microsoft.com/free/)
-
-### Verificar Instalações
-
-```bash
-# Verificar Node.js
-node --version
-# Esperado: v18.x.x ou superior
-
-# Verificar npm
-npm --version
-# Esperado: 9.x.x ou superior
-
-# Verificar Git
-git --version
-# Esperado: git version 2.x.x
-
-# Verificar Azure CLI (após instalação)
-az --version
-# Esperado: azure-cli 2.x.x
-```
+- [x] Conta GitHub: [github.com](https://github.com/)
+- [x] Conta Microsoft Azure: [azure.microsoft.com](https://azure.microsoft.com/free/)
 
 ---
 
-## 3. Exportar o Código do Lovable
+## 3. Azure SQL Database
 
-### Opção A: Conectar ao GitHub (Recomendado)
-
-1. No Lovable, clique no nome do projeto (canto superior esquerdo)
-2. Selecione **"Settings"**
-3. Vá para a aba **"GitHub"**
-4. Clique em **"Connect to GitHub"**
-5. Autorize o Lovable a acessar sua conta GitHub
-6. Escolha **"Create new repository"**
-7. Configure:
-   - **Repository name:** `rapha-movies`
-   - **Visibility:** Public ou Private
-8. Clique em **"Create and push"**
-
-O código será automaticamente enviado para o repositório.
-
-### Opção B: Download Manual (ZIP)
-
-1. No Lovable, clique no nome do projeto
-2. Selecione **"Settings"**
-3. Vá para a aba **"Export"**
-4. Clique em **"Download as ZIP"**
-5. Extraia o arquivo em uma pasta local
-
-### Clonar o Repositório (se usou Opção A)
-
-```bash
-# Navegue para sua pasta de projetos
-cd ~/projetos
-
-# Clone o repositório
-git clone https://github.com/SEU_USUARIO/rapha-movies.git
-
-# Entre na pasta do projeto
-cd rapha-movies
-
-# Instale as dependências
-npm install
-
-# Teste localmente
-npm run dev
-```
-
-Acesse `http://localhost:5173` para verificar se está funcionando.
-
----
-
-## 4. Criar Conta no Azure
-
-### 4.1. Criar Conta Gratuita
-
-1. Acesse [azure.microsoft.com/free](https://azure.microsoft.com/free/)
-2. Clique em **"Iniciar gratuitamente"**
-3. Faça login com sua conta Microsoft (ou crie uma)
-4. Preencha os dados:
-   - Nome completo
-   - Telefone (para verificação)
-   - Cartão de crédito (apenas verificação, não será cobrado)
-5. Aceite os termos e clique em **"Inscrever-se"**
-
-**Benefícios da conta gratuita:**
-- $200 de crédito por 30 dias
-- 12 meses de serviços gratuitos
-- Serviços sempre gratuitos (com limites)
-
-### 4.2. Acessar o Portal Azure
-
-1. Acesse [portal.azure.com](https://portal.azure.com)
-2. Faça login com sua conta Microsoft
-3. Você verá o Dashboard do Azure
-
-### 4.3. Instalar e Configurar Azure CLI
-
-```bash
-# Windows (PowerShell como Admin)
-winget install Microsoft.AzureCLI
-
-# macOS
-brew install azure-cli
-
-# Linux (Ubuntu/Debian)
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-# Fazer login no Azure CLI
-az login
-# Abrirá o navegador para autenticação
-
-# Verificar assinatura ativa
-az account show
-```
-
----
-
-## 5. Configurar Azure Blob Storage
-
-### 5.1. Criar Grupo de Recursos
-
-```bash
-# Via Azure CLI
-az group create \
-  --name rg-rapha-movies \
-  --location brazilsouth
-```
+### 3.1. Criar SQL Server
 
 **Via Portal Azure:**
-1. Pesquise por **"Grupos de recursos"**
-2. Clique em **"+ Criar"**
-3. Configure:
-   - **Assinatura:** Sua assinatura
-   - **Grupo de recursos:** `rg-rapha-movies`
-   - **Região:** Brazil South
-4. Clique em **"Revisar + criar"** → **"Criar"**
-
-### 5.2. Criar Storage Account
-
-```bash
-# Via Azure CLI
-az storage account create \
-  --name straphamovies \
-  --resource-group rg-rapha-movies \
-  --location brazilsouth \
-  --sku Standard_LRS \
-  --kind StorageV2 \
-  --allow-blob-public-access true
-```
-
-**Via Portal Azure:**
-1. Clique em **"+ Criar um recurso"**
-2. Pesquise **"Storage account"** → Selecione → **"Criar"**
-3. Configure:
-
-| Campo | Valor |
-|-------|-------|
-| Assinatura | Sua assinatura ativa |
-| Grupo de recursos | `rg-rapha-movies` |
-| Nome da conta | `straphamovies` (único globalmente, apenas minúsculas e números) |
-| Região | Brazil South |
-| Desempenho | Standard |
-| Redundância | LRS (Locally-redundant storage) |
-
-4. Clique em **"Avançar: Avançado"**
-5. Em **"Segurança"**, marque:
-   - [x] Permitir acesso público ao Blob
-6. Clique em **"Revisar + criar"** → **"Criar"**
-7. Aguarde a implantação → **"Ir para o recurso"**
-
-### 5.3. Criar Container para Imagens
-
-```bash
-# Via Azure CLI
-az storage container create \
-  --name movies \
-  --account-name straphamovies \
-  --public-access blob
-```
-
-**Via Portal Azure:**
-1. Na Storage Account, menu lateral → **"Contêineres"**
-2. Clique em **"+ Contêiner"**
-3. Configure:
-   - **Nome:** `movies`
-   - **Nível de acesso público:** `Blob (acesso de leitura anônimo somente para blobs)`
-4. Clique em **"Criar"**
-
-### 5.4. Configurar CORS (Cross-Origin Resource Sharing)
-
-```bash
-# Via Azure CLI
-az storage cors add \
-  --services b \
-  --methods GET HEAD OPTIONS \
-  --origins "*" \
-  --allowed-headers "*" \
-  --exposed-headers "*" \
-  --max-age 3600 \
-  --account-name straphamovies
-```
-
-**Via Portal Azure:**
-1. Na Storage Account → **"Configurações"** → **"Compartilhamento de recursos (CORS)"**
-2. Em **"Serviço Blob"**, adicione:
-
-| Campo | Valor |
-|-------|-------|
-| Origens permitidas | `*` |
-| Métodos permitidos | `GET, HEAD, OPTIONS` |
-| Cabeçalhos permitidos | `*` |
-| Cabeçalhos expostos | `*` |
-| Idade máxima | `3600` |
-
-3. Clique em **"Salvar"**
-
-### 5.5. Obter Connection String (para upload via CLI)
-
-```bash
-# Obter connection string
-az storage account show-connection-string \
-  --name straphamovies \
-  --resource-group rg-rapha-movies \
-  --query connectionString \
-  --output tsv
-
-# Salvar como variável de ambiente (Linux/Mac)
-export AZURE_STORAGE_CONNECTION_STRING="<sua-connection-string>"
-
-# Windows PowerShell
-$env:AZURE_STORAGE_CONNECTION_STRING="<sua-connection-string>"
-```
-
----
-
-## 6. Implantar no Azure Static Web Apps
-
-### 6.1. Criar Static Web App via Portal
-
-1. No Portal Azure, clique em **"+ Criar um recurso"**
-2. Pesquise **"Static Web Apps"** → Selecione → **"Criar"**
-3. Configure:
-
-**Aba Básico:**
-| Campo | Valor |
-|-------|-------|
-| Assinatura | Sua assinatura |
-| Grupo de recursos | `rg-rapha-movies` |
-| Nome | `swa-rapha-movies` |
-| Tipo de plano | Gratuito |
-| Região | Brazil South |
-| Origem da implantação | GitHub |
-
-4. Clique em **"Entrar com o GitHub"** e autorize
-5. Configure o repositório:
-
-| Campo | Valor |
-|-------|-------|
-| Organização | Seu usuário GitHub |
-| Repositório | `rapha-movies` |
-| Branch | `main` |
-
-6. Configure o Build:
-
-| Campo | Valor |
-|-------|-------|
-| Predefinições de build | Vite |
-| Local do aplicativo | `/` |
-| Local da API | (deixe vazio) |
-| Local de saída | `dist` |
-
-7. Clique em **"Revisar + criar"** → **"Criar"**
-
-### 6.2. Verificar Workflow do GitHub Actions
-
-O Azure cria automaticamente um arquivo de workflow em `.github/workflows/`. Verifique:
-
-```yaml
-# .github/workflows/azure-static-web-apps-xxx.yml
-name: Azure Static Web Apps CI/CD
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - main
-
-jobs:
-  build_and_deploy_job:
-    runs-on: ubuntu-latest
-    name: Build and Deploy Job
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          lfs: false
-      - name: Build And Deploy
-        id: builddeploy
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_XXX }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/"
-          api_location: ""
-          output_location: "dist"
-```
-
-### 6.3. Acompanhar Implantação
-
-1. No GitHub, vá para **Actions**
-2. Você verá o workflow rodando
-3. Aguarde o build (2-5 minutos)
-4. Quando concluído (✓ verde), o site está no ar
-
-### 6.4. Obter URL do Site
-
-**Via Portal Azure:**
-1. Vá para o recurso **Static Web App**
-2. Na visão geral, copie a **URL** (ex: `https://blue-cliff-0a1b2c3d4.azurestaticapps.net`)
+1. Pesquise **"SQL servers"** → **"+ Create"**
+2. Configure:
+   - **Server name:** `raphamovies-sql-server`
+   - **Location:** Brazil South
+   - **Authentication:** SQL authentication
+   - **Admin login:** `sqladmin`
+   - **Password:** (senha forte)
 
 **Via Azure CLI:**
 ```bash
-az staticwebapp show \
-  --name swa-rapha-movies \
+az sql server create \
+  --name raphamovies-sql-server \
   --resource-group rg-rapha-movies \
-  --query defaultHostname \
-  --output tsv
+  --location brazilsouth \
+  --admin-user sqladmin \
+  --admin-password "SuaSenhaForte123!"
+```
+
+### 3.2. Criar Database
+
+**Via Portal:**
+1. No SQL Server → **"SQL databases"** → **"+ Create"**
+2. Configure:
+   - **Database name:** `RaphaMoviesDB`
+   - **Compute + storage:** Basic (5 DTU) ou Standard S0
+
+**Via Azure CLI:**
+```bash
+az sql db create \
+  --resource-group rg-rapha-movies \
+  --server raphamovies-sql-server \
+  --name RaphaMoviesDB \
+  --service-objective Basic
+```
+
+### 3.3. Configurar Firewall
+
+Permita conexões dos Azure Services e seu IP:
+
+```bash
+# Permitir Azure Services
+az sql server firewall-rule create \
+  --resource-group rg-rapha-movies \
+  --server raphamovies-sql-server \
+  --name AllowAzureServices \
+  --start-ip-address 0.0.0.0 \
+  --end-ip-address 0.0.0.0
+
+# Permitir seu IP (para desenvolvimento)
+az sql server firewall-rule create \
+  --resource-group rg-rapha-movies \
+  --server raphamovies-sql-server \
+  --name AllowMyIP \
+  --start-ip-address SEU_IP \
+  --end-ip-address SEU_IP
+```
+
+### 3.4. Connection String
+
+```
+Server=tcp:raphamovies-sql-server.database.windows.net,1433;Initial Catalog=RaphaMoviesDB;Persist Security Info=False;User ID=sqladmin;Password={sua_senha};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
+```
+
+### 3.5. Criar Tabelas
+
+Execute os scripts SQL do arquivo `docs/API_BACKEND_SPEC.md` usando:
+- **Azure Portal:** Query Editor no SQL Database
+- **SSMS:** SQL Server Management Studio
+- **Azure Data Studio**
+
+---
+
+## 4. Backend .NET Core (Web App)
+
+### 4.1. Criar App Service
+
+**Via Portal:**
+1. **"+ Create a resource"** → **"Web App"**
+2. Configure:
+   - **Name:** `raphamovies-api`
+   - **Runtime stack:** .NET 8
+   - **Operating System:** Windows
+   - **Region:** Brazil South
+   - **App Service Plan:** Basic B1 ou Standard S1
+
+**Via Azure CLI:**
+```bash
+# Criar App Service Plan
+az appservice plan create \
+  --name plan-rapha-movies \
+  --resource-group rg-rapha-movies \
+  --location brazilsouth \
+  --sku B1
+
+# Criar Web App
+az webapp create \
+  --name raphamovies-api \
+  --resource-group rg-rapha-movies \
+  --plan plan-rapha-movies \
+  --runtime "DOTNET|8.0"
+```
+
+### 4.2. Configurar Connection String
+
+No Portal → App Service → **Configuration** → **Connection strings**:
+
+| Name | Value | Type |
+|------|-------|------|
+| DefaultConnection | `Server=tcp:raphamovies-sql-server.database.windows.net...` | SQLAzure |
+
+### 4.3. Configurar Application Settings
+
+| Name | Value |
+|------|-------|
+| Jwt__Secret | `sua-chave-secreta-com-pelo-menos-32-caracteres` |
+| Jwt__Issuer | `RaphaMovies.Api` |
+| Jwt__Audience | `RaphaMovies.Frontend` |
+| Jwt__ExpirationMinutes | `60` |
+| ASPNETCORE_ENVIRONMENT | `Production` |
+
+### 4.4. Configurar CORS no Backend
+
+No `Program.cs`:
+
+```csharp
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Production", policy =>
+    {
+        policy.WithOrigins(
+            "https://raphamovies-frontend.azurewebsites.net",
+            "http://localhost:5173"  // Dev local
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
+});
+
+// No pipeline:
+app.UseCors("Production");
+```
+
+### 4.5. Deploy do Backend
+
+**Opção A - Visual Studio:**
+1. Right-click no projeto → **Publish**
+2. Selecione **Azure** → **Azure App Service (Windows)**
+3. Selecione `raphamovies-api`
+4. Clique em **Publish**
+
+**Opção B - Azure CLI:**
+```bash
+# Build
+dotnet publish -c Release -o ./publish
+
+# Deploy
+az webapp deploy \
+  --resource-group rg-rapha-movies \
+  --name raphamovies-api \
+  --src-path ./publish.zip
 ```
 
 ---
 
-## 7. Configurar Domínio Personalizado (Opcional)
+## 5. Frontend React (Web App)
 
-### 7.1. Adicionar Domínio Personalizado
+### 5.1. Criar App Service
 
-1. No Portal Azure → Static Web App → **"Domínios personalizados"**
-2. Clique em **"+ Adicionar"**
-3. Escolha **"Domínio personalizado no DNS externo"**
-4. Digite seu domínio (ex: `raphamovies.com.br`)
-5. Copie o registro CNAME fornecido
+**Via Portal:**
+1. **"+ Create a resource"** → **"Web App"**
+2. Configure:
+   - **Name:** `raphamovies-frontend`
+   - **Runtime stack:** Node 20 LTS
+   - **Operating System:** Windows
+   - **Region:** Brazil South
+   - **App Service Plan:** Use o mesmo plano do backend
 
-### 7.2. Configurar DNS
+**Via Azure CLI:**
+```bash
+az webapp create \
+  --name raphamovies-frontend \
+  --resource-group rg-rapha-movies \
+  --plan plan-rapha-movies \
+  --runtime "NODE|20-lts"
+```
 
-No painel do seu provedor de domínio, adicione:
+### 5.2. web.config para IIS
 
-| Tipo | Nome | Valor |
-|------|------|-------|
-| CNAME | www | `blue-cliff-0a1b2c3d4.azurestaticapps.net` |
-| CNAME | @ | `blue-cliff-0a1b2c3d4.azurestaticapps.net` |
+O arquivo `public/web.config` já está configurado com:
+- Roteamento SPA (todas as rotas → index.html)
+- MIME types para fontes e imagens modernas
+- Headers de segurança
+- Compressão HTTP
 
-### 7.3. Validar e Ativar SSL
+### 5.3. Configurar variável da API
 
-1. Volte ao Portal Azure
-2. Clique em **"Validar"**
-3. Após validação, o SSL é configurado automaticamente
+No frontend, a URL da API é configurada via `VITE_API_URL`:
+
+**Desenvolvimento local** - `.env.local`:
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+**Produção** - Configure no GitHub Actions (secret `VITE_API_URL`):
+```
+https://raphamovies-api.azurewebsites.net/api
+```
 
 ---
 
-## 8. Gerenciar Imagens no Blob Storage
+## 6. GitHub Actions CI/CD
 
-### 8.1. Upload via Azure CLI
+### 6.1. Secrets Necessários
 
-```bash
-# Upload de um arquivo
-az storage blob upload \
-  --account-name straphamovies \
-  --container-name movies \
-  --name posters/interestelar.jpg \
-  --file ./images/interestelar-poster.jpg \
-  --content-type image/jpeg
+Configure no GitHub → Settings → Secrets and variables → Actions:
 
-# Upload de múltiplos arquivos
-az storage blob upload-batch \
-  --account-name straphamovies \
-  --destination movies/posters \
-  --source ./images/posters \
-  --content-type image/jpeg
-```
+| Secret | Descrição |
+|--------|-----------|
+| `AZURE_WEBAPP_NAME` | `raphamovies-frontend` |
+| `AZURE_WEBAPP_PUBLISH_PROFILE` | XML do Publish Profile |
+| `VITE_API_URL` | `https://raphamovies-api.azurewebsites.net/api` |
 
-### 8.2. Upload via Portal Azure
+### 6.2. Obter Publish Profile
 
-1. Storage Account → Contêineres → `movies`
-2. Clique em **"Carregar"**
-3. Arraste ou selecione as imagens
-4. Em **"Avançado"**, defina o caminho:
-   - Para posters: `posters/nome-do-filme.jpg`
-   - Para backdrops: `backdrops/nome-do-filme.jpg`
-5. Clique em **"Carregar"**
+1. No Portal Azure → Web App → **Download publish profile**
+2. Abra o arquivo XML
+3. Copie todo o conteúdo
+4. Cole no secret `AZURE_WEBAPP_PUBLISH_PROFILE`
 
-### 8.3. Upload via Azure Storage Explorer
+### 6.3. Workflow
 
-1. Baixe: [Azure Storage Explorer](https://azure.microsoft.com/features/storage-explorer/)
-2. Instale e faça login com sua conta Azure
-3. Navegue: Storage Accounts → `straphamovies` → Blob Containers → `movies`
-4. Clique em **"Upload"** → **"Upload Files"**
-5. Selecione as imagens e configure o destino
+O arquivo `.github/workflows/azure-webapp-deploy.yml` está configurado para:
+- Executar em push na branch `main`
+- Instalar dependências
+- Build com variáveis de ambiente
+- Deploy para Azure Web App
 
-### 8.4. Obter URLs das Imagens
+### 6.4. Executar Deploy
 
-**Formato da URL:**
-```
-https://straphamovies.blob.core.windows.net/movies/posters/interestelar.jpg
-https://straphamovies.blob.core.windows.net/movies/backdrops/interestelar.jpg
-```
-
-**Via CLI:**
-```bash
-# Listar blobs
-az storage blob list \
-  --account-name straphamovies \
-  --container-name movies \
-  --query "[].name" \
-  --output table
-
-# Obter URL de um blob
-az storage blob url \
-  --account-name straphamovies \
-  --container-name movies \
-  --name posters/interestelar.jpg \
-  --output tsv
-```
-
-### 8.5. Atualizar URLs no Código
-
-Edite o arquivo `src/data/movies.ts` com as URLs do Azure:
-
-```typescript
-export const movies: Movie[] = [
-  {
-    id: "1",
-    title: "Interestelar",
-    synopsis: "Uma equipe de exploradores...",
-    year: 2014,
-    duration: "2h 49min",
-    genre: "Ficção Científica",
-    rating: 8.7,
-    imageUrl: "https://straphamovies.blob.core.windows.net/movies/posters/interestelar.jpg",
-    backdropUrl: "https://straphamovies.blob.core.windows.net/movies/backdrops/interestelar.jpg"
-  },
-  // ... outros filmes
-];
-```
-
-Após atualizar, faça commit e push:
-
-```bash
-git add .
-git commit -m "feat: atualizar URLs das imagens para Azure Blob Storage"
-git push origin main
-```
-
-O GitHub Actions irá automaticamente reimplantar o site.
+1. Faça push para a branch `main`
+2. Acesse GitHub → Actions
+3. Acompanhe o workflow
+4. Após concluído, acesse a URL do Web App
 
 ---
 
-## 9. Custos Estimados
+## 7. Configurações Adicionais
 
-### Conta Gratuita Azure (Primeiros 12 meses)
+### 7.1. Custom Domain
 
-| Serviço | Limite Gratuito | Custo Excedente |
-|---------|-----------------|-----------------|
-| Static Web Apps | 100GB banda/mês | Plano Free ilimitado |
-| Blob Storage | 5GB armazenamento | ~R$0,10/GB |
-| Transferência de dados | 5GB/mês | ~R$0,40/GB |
+1. App Service → **Custom domains** → **Add custom domain**
+2. Configure DNS no seu provedor:
+   - CNAME: `www` → `raphamovies-frontend.azurewebsites.net`
+3. Adicione certificado SSL (managed ou próprio)
 
-### Estimativa Mensal (Projeto Educacional)
+### 7.2. Application Insights
 
-| Item | Uso Estimado | Custo |
-|------|--------------|-------|
-| Static Web Apps | < 100GB | **Gratuito** |
-| Blob Storage | ~500MB | **~R$0,05** |
-| Transferência | ~2GB | **Gratuito** |
-| **Total Mensal** | - | **< R$1,00** |
+1. App Service → **Application Insights** → **Turn on**
+2. Selecione ou crie um recurso
+3. Habilita monitoramento de performance e erros
+
+### 7.3. Auto-scaling
+
+1. App Service Plan → **Scale out**
+2. Configure regras baseadas em:
+   - CPU percentage
+   - Memory percentage
+   - HTTP queue length
+
+### 7.4. Backup
+
+1. App Service → **Backups** → **Configure**
+2. Selecione storage account
+3. Configure schedule
 
 ---
 
-## 10. Solução de Problemas
+## 8. Troubleshooting
 
-### Erro: "Blob not found" (404)
+### Frontend não carrega
 
-**Causa:** URL incorreta ou blob não existe.
+- Verifique se `web.config` está no `dist/`
+- Acesse **Log stream** no portal
+- Verifique se Node.js está configurado corretamente
 
-**Solução:**
-1. Verifique se o nome do arquivo está correto (case-sensitive)
-2. Confirme que o container tem acesso público
-3. Teste a URL diretamente no navegador
+### Erro 500 no Backend
 
-### Erro: CORS bloqueando imagens
+- Verifique **Application Insights** → **Failures**
+- Confirme connection string do banco
+- Verifique logs em **Log stream**
 
-**Causa:** CORS não configurado.
+### API não conecta ao banco
 
-**Solução:**
 ```bash
-az storage cors clear --services b --account-name straphamovies
-az storage cors add \
-  --services b \
-  --methods GET HEAD OPTIONS \
-  --origins "*" \
-  --allowed-headers "*" \
-  --account-name straphamovies
+# Teste conexão
+az sql db show-connection-string \
+  --client ado.net \
+  --server raphamovies-sql-server \
+  --name RaphaMoviesDB
 ```
+
+- Verifique firewall do SQL Server
+- Confirme IP do App Service nas regras
+
+### CORS bloqueando requisições
+
+- Confirme URL exata no CORS (com/sem trailing slash)
+- Verifique se está usando HTTPS em produção
+- Teste com `AllowAnyOrigin()` temporariamente
 
 ### Build falha no GitHub Actions
 
-**Causa:** Dependências ou configuração incorreta.
-
-**Solução:**
-1. Vá para GitHub → Actions → Clique no workflow com falha
-2. Verifique os logs de erro
-3. Problemas comuns:
-   - Falta de `npm install`
-   - Variável de ambiente não configurada
-   - Erro de sintaxe no código
-
-### Site não atualiza após push
-
-**Causa:** Cache ou workflow não executou.
-
-**Solução:**
-1. Verifique se o workflow foi executado no GitHub Actions
-2. Limpe o cache do navegador (Ctrl+Shift+R)
-3. Aguarde propagação do CDN (até 5 minutos)
-
-### Imagens não carregam no site
-
-**Causa:** URLs incorretas ou container privado.
-
-**Solução:**
-1. Teste a URL da imagem diretamente no navegador
-2. Verifique se o container está com acesso "Blob"
-3. Confirme que não há typos na URL
+- Verifique secrets configurados
+- Confirme versão do Node.js
+- Veja logs detalhados na Action
 
 ---
 
-## 📚 Referências
+## 9. Checklist de Deploy
 
-- [Documentação Azure Static Web Apps](https://docs.microsoft.com/azure/static-web-apps/)
-- [Documentação Azure Blob Storage](https://docs.microsoft.com/azure/storage/blobs/)
-- [Azure CLI Reference](https://docs.microsoft.com/cli/azure/)
-- [Vite Build Configuration](https://vitejs.dev/guide/build.html)
-- [React Router](https://reactrouter.com/)
+### Azure SQL Database
+- [ ] SQL Server criado
+- [ ] Database criado
+- [ ] Firewall configurado (Azure Services + seu IP)
+- [ ] Tabelas criadas
+
+### Backend .NET Core
+- [ ] Web App criado
+- [ ] Connection string configurada
+- [ ] Application settings configuradas (JWT, etc.)
+- [ ] CORS configurado
+- [ ] Deploy realizado
+
+### Frontend React
+- [ ] Web App criado
+- [ ] GitHub secrets configurados
+- [ ] Workflow rodando com sucesso
+- [ ] web.config copiado para dist/
+
+### Integração
+- [ ] Frontend conecta à API
+- [ ] API conecta ao banco
+- [ ] Autenticação funcionando
+- [ ] CRUD de filmes funcionando
+- [ ] Sistema de aluguéis funcionando
 
 ---
 
-## ✅ Checklist Final
+## 10. Custos Estimados (Brazil South)
 
-- [ ] Código exportado do Lovable para GitHub
-- [ ] Conta Azure criada e configurada
-- [ ] Resource Group `rg-rapha-movies` criado
-- [ ] Storage Account `straphamovies` criada
-- [ ] Container `movies` com acesso público
-- [ ] CORS configurado no Blob Storage
-- [ ] Imagens uploaded para o Blob Storage
-- [ ] Static Web App criada e conectada ao GitHub
-- [ ] Workflow do GitHub Actions funcionando
-- [ ] URLs das imagens atualizadas no código
-- [ ] Site acessível via URL do Azure
+| Recurso | SKU | Custo Estimado/mês |
+|---------|-----|-------------------|
+| App Service Plan | B1 (1 core, 1.75 GB) | ~$13 USD |
+| Azure SQL Database | Basic (5 DTU) | ~$5 USD |
+| **Total** | | **~$18 USD** |
 
----
+*Valores aproximados. Consulte [azure.microsoft.com/pricing](https://azure.microsoft.com/pricing/) para valores atualizados.*
 
-**Desenvolvido para fins educacionais**  
-Rapha Movies © 2024
+Para reduzir custos em ambiente de desenvolvimento, considere:
+- Usar Free tier do App Service (com limitações)
+- Pausar recursos quando não estiver usando
+- Usar Azure Dev/Test pricing
