@@ -451,10 +451,36 @@ Clique em **"Executar"** (▶️)
 
 ---
 
-## 7. Configurar GitHub para Deploy Automático
+## 7. Configurar Deploy Automático via GitHub
 
-> 💡 **O que é Deploy Automático?**
-> Toda vez que o código for atualizado no GitHub, o Azure automaticamente publica a nova versão.
+> 💡 **Por que isso é especial neste projeto?**
+> O backend (.NET Core) e o frontend (React) estão **no mesmo repositório**, mas precisam ser publicados em **App Services diferentes**. Os workflows do GitHub Actions já estão configurados para lidar com isso automaticamente.
+
+### Como funciona?
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    REPOSITÓRIO GITHUB                                │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  📁 / (raiz)              → Frontend React/Vite                     │
+│  📁 /backend/             → Backend .NET Core                       │
+│  📁 /docs/                → Documentação                            │
+│                                                                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                    WORKFLOWS (GitHub Actions)                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  🔄 azure-webapp-deploy.yml                                         │
+│     ✓ Executa quando há mudanças FORA de /backend                   │
+│     ✓ Faz deploy do FRONTEND para raphamovies-frontend              │
+│                                                                      │
+│  🔄 main_raphamovies-api-hml.yml                                    │
+│     ✓ Executa quando há mudanças em /backend                        │
+│     ✓ Faz deploy do BACKEND para raphamovies-api-hml                │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ### Passo 7.1: Conectar Lovable ao GitHub
 
@@ -467,7 +493,49 @@ Clique em **"Executar"** (▶️)
 7. Nome sugerido: `rapha-movies`
 8. Clique em **"Create and push"**
 
-### Passo 7.2: Configurar Secrets no GitHub
+### Passo 7.2: Configurar Deploy do Backend via Deployment Center
+
+> 💡 **O que é Deployment Center?**
+> É uma forma fácil de conectar seu App Service ao GitHub e configurar deploy automático diretamente pelo Portal Azure.
+
+**⚠️ IMPORTANTE:** O Azure Deployment Center vai tentar criar um novo workflow. Como já temos os workflows configurados, você tem duas opções:
+
+#### Opção A: Usar os Workflows Existentes (Recomendado)
+
+Os workflows já estão prontos no repositório:
+- `.github/workflows/main_raphamovies-api-hml.yml` → Backend
+- `.github/workflows/azure-webapp-deploy.yml` → Frontend
+
+Você só precisa configurar os **Secrets** no GitHub (veja Passo 7.3).
+
+#### Opção B: Usar Deployment Center (Se preferir configurar pelo Azure)
+
+1. No Portal Azure, vá para o App Service do backend (`raphamovies-api-hml`)
+2. No menu à esquerda, clique em **"Centro de Implantação"** (Deployment Center)
+3. Configure:
+   - **Origem**: GitHub
+   - **Organização**: Seu usuário/organização do GitHub
+   - **Repositório**: `rapha-movies`
+   - **Branch**: `main`
+4. **IMPORTANTE**: O Azure vai perguntar sobre o tipo de build
+   - Selecione: **.NET Core**
+5. Clique em **"Salvar"**
+
+**⚠️ Se o Azure criar um novo workflow:**
+O workflow criado automaticamente não sabe que o projeto .NET está em `/backend/RaphaMovies.API/`. Você precisará editar o arquivo criado no GitHub:
+
+```yaml
+# Adicione esta linha no início do arquivo:
+env:
+  BACKEND_PATH: backend/RaphaMovies.API
+
+# E altere todos os comandos dotnet para usar working-directory:
+- name: Build with dotnet
+  run: dotnet build --configuration Release
+  working-directory: ${{ env.BACKEND_PATH }}
+```
+
+### Passo 7.3: Configurar Secrets no GitHub
 
 > 💡 **O que são Secrets?**
 > São informações sensíveis (como senhas) que ficam guardadas de forma segura no GitHub.
@@ -477,7 +545,7 @@ Clique em **"Executar"** (▶️)
 3. No menu à esquerda, clique em **"Secrets and variables"** → **"Actions"**
 4. Clique em **"New repository secret"**
 
-Adicione estes 3 secrets (um de cada vez):
+#### Secrets para o Frontend:
 
 **Secret 1:**
 | Campo | Valor |
@@ -491,11 +559,11 @@ Clique em **"Add secret"**
 | Campo | Valor |
 |-------|-------|
 | Name | `VITE_API_URL` |
-| Secret | `https://raphamovies-api.azurewebsites.net/api` |
+| Secret | `https://raphamovies-api-hml.azurewebsites.net/api` |
 
 Clique em **"Add secret"**
 
-**Secret 3 - Publish Profile:**
+**Secret 3 - Publish Profile do Frontend:**
 
 Para este, precisamos obter do Azure:
 
@@ -514,18 +582,34 @@ Volte ao GitHub:
 
 Clique em **"Add secret"**
 
-### Passo 7.3: Executar o Deploy
+#### Secrets para o Backend (se usar Deployment Center):
+
+O Azure Deployment Center configura automaticamente estes secrets quando você conecta via Portal:
+- `AZUREAPPSERVICE_CLIENTID_xxx`
+- `AZUREAPPSERVICE_TENANTID_xxx`
+- `AZUREAPPSERVICE_SUBSCRIPTIONID_xxx`
+
+Se preferir configurar manualmente, você pode usar Publish Profile igual ao frontend.
+
+### Passo 7.4: Executar o Deploy
 
 1. No GitHub, vá para a aba **"Actions"**
-2. Você verá o workflow **"Build and Deploy to Azure Web App"**
-3. Se não estiver rodando, clique em **"Run workflow"** → **"Run workflow"**
-4. Aguarde o processo (2-5 minutos)
+2. Você verá dois workflows:
+   - **"Build and Deploy Frontend to Azure Web App"**
+   - **"Build and deploy ASP.Net Core app to Azure Web App - raphamovies-api-hml"**
+3. Para executar manualmente, clique no workflow → **"Run workflow"** → **"Run workflow"**
+4. Aguarde o processo (2-5 minutos cada)
 5. Quando ficar verde (✓), o deploy foi concluído!
 
-### Passo 7.4: Verificar o Deploy
+### Passo 7.5: Verificar o Deploy
 
+**Frontend:**
 1. Acesse: `https://raphamovies-frontend.azurewebsites.net`
-2. O site deve carregar (mesmo sem dados ainda)
+2. O site deve carregar
+
+**Backend:**
+1. Acesse: `https://raphamovies-api-hml.azurewebsites.net/swagger`
+2. Você deve ver a documentação Swagger da API
 
 ---
 
@@ -539,9 +623,12 @@ Clique em **"Add secret"**
 
 ### 8.2: Verificar o Backend
 
-> ⚠️ **ATENÇÃO:** O backend (.NET Core) precisa ser desenvolvido e publicado separadamente. 
-> Este projeto Lovable contém apenas o frontend. 
-> Você precisará de um desenvolvedor .NET para criar a API seguindo a especificação em `docs/API_BACKEND_SPEC.md`
+1. Acesse: `https://raphamovies-api-hml.azurewebsites.net/swagger`
+2. Você deve ver a documentação Swagger da API
+3. Teste o endpoint `GET /api/movies` para verificar se retorna dados
+
+> ✅ **O backend .NET Core já está incluído neste projeto!** 
+> Ele está na pasta `backend/RaphaMovies.API/` e será publicado automaticamente via GitHub Actions.
 
 ### 8.3: Verificar o Banco
 
