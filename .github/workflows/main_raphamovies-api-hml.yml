@@ -50,11 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     environment:
-      name: 'Production'
+      name: 'production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - name: Download artifact from build job
@@ -62,18 +59,11 @@ jobs:
         with:
           name: .net-app
           path: ./publish
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F7ACB1F08405489B9BE36450229FAC29 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0A186DDA092E435595EFC967B43D31C1 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7718A8F2E33F4EAC9EB2406042E8BC73 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'raphamovies-api-hml'
-          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
           package: ./publish
