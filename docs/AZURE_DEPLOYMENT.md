@@ -522,16 +522,29 @@ Você só precisa configurar os **Secrets** no GitHub (veja Passo 7.3).
 5. Clique em **"Salvar"**
 
 **⚠️ Se o Azure criar um novo workflow:**
-O workflow criado automaticamente não sabe que o projeto .NET está em `/backend/RaphaMovies.API/`. Você precisará editar o arquivo criado no GitHub:
+
+O workflow criado automaticamente não sabe que o projeto .NET está em `/backend/RaphaMovies.API/`. 
+
+O Azure vai criar um arquivo na pasta `.github/workflows/` com um nome como `main_raphamovies-api-hml.yml` (ou similar). Você precisará editar esse arquivo no GitHub:
+
+**Arquivo a editar:** `.github/workflows/main_raphamovies-api-hml.yml` (ou o nome que o Azure gerou)
 
 ```yaml
-# Adicione esta linha no início do arquivo:
+# Adicione esta linha no início do arquivo (após o bloco 'on:'):
 env:
   BACKEND_PATH: backend/RaphaMovies.API
 
 # E altere todos os comandos dotnet para usar working-directory:
+- name: Restore dependencies
+  run: dotnet restore
+  working-directory: ${{ env.BACKEND_PATH }}
+
 - name: Build with dotnet
-  run: dotnet build --configuration Release
+  run: dotnet build --configuration Release --no-restore
+  working-directory: ${{ env.BACKEND_PATH }}
+
+- name: Publish
+  run: dotnet publish -c Release -o ./publish --no-build
   working-directory: ${{ env.BACKEND_PATH }}
 ```
 
