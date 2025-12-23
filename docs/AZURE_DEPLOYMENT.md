@@ -582,14 +582,102 @@ Volte ao GitHub:
 
 Clique em **"Add secret"**
 
-#### Secrets para o Backend (se usar Deployment Center):
+#### Secrets para o Backend (OIDC - Federated Identity):
 
-O Azure Deployment Center configura automaticamente estes secrets quando você conecta via Portal:
+O workflow do backend usa autenticação OIDC. O Azure Deployment Center configura automaticamente estes secrets:
 - `AZUREAPPSERVICE_CLIENTID_xxx`
 - `AZUREAPPSERVICE_TENANTID_xxx`
 - `AZUREAPPSERVICE_SUBSCRIPTIONID_xxx`
 
-Se preferir configurar manualmente, você pode usar Publish Profile igual ao frontend.
+**⚠️ ERRO COMUM: "No matching federated identity record found"**
+
+Se você receber este erro no GitHub Actions:
+```
+Error: AADSTS700213: No matching federated identity record found for presented assertion subject 'repo:seu-usuario/seu-repo:environment:Production'
+```
+
+Isso significa que a **Federated Identity Credential** não está configurada corretamente. Siga os passos abaixo:
+
+### Passo 7.3.1: Configurar Federated Identity Credential
+
+1. Acesse o [Portal Azure](https://portal.azure.com)
+2. Vá para **Microsoft Entra ID** (antigo Azure Active Directory)
+3. No menu à esquerda, clique em **App registrations**
+4. Encontre o App Registration criado pelo Deployment Center (ou crie um novo)
+
+**No App Registration:**
+
+5. Clique em **Certificates & secrets**
+6. Clique na aba **Federated credentials**
+7. Clique em **+ Add credential**
+8. Selecione **GitHub Actions deploying Azure resources**
+9. Preencha EXATAMENTE como está no workflow:
+
+| Campo | Valor | Explicação |
+|-------|-------|------------|
+| **Organization** | `raphasi` | Seu usuário ou organização do GitHub |
+| **Repository** | `rapha-s-azure-flix-db-api` | Nome do repositório (verifique no GitHub) |
+| **Entity type** | `Environment` | Porque o workflow usa `environment: Production` |
+| **Environment name** | `Production` | Exatamente como está no workflow (maiúscula) |
+| **Name** | `github-actions-production` | Qualquer nome descritivo |
+
+10. Clique em **Add**
+
+### Passo 7.3.2: Verificar Permissões do App Registration
+
+O App Registration precisa de permissão **Contributor** no Web App:
+
+1. Vá para o **Web App** do backend (`raphamovies-api-hml`)
+2. Clique em **Access control (IAM)**
+3. Clique em **+ Add** → **Add role assignment**
+4. Selecione a role **Contributor**
+5. Na aba **Members**, clique em **+ Select members**
+6. Pesquise e selecione o App Registration
+7. Clique em **Review + assign**
+
+### Alternativa: Usar Publish Profile (Mais Simples)
+
+Se preferir não usar OIDC, você pode modificar o workflow do backend para usar **Publish Profile** igual ao frontend:
+
+1. Obtenha o Publish Profile do App Service do backend:
+   - Vá para o App Service `raphamovies-api-hml`
+   - Clique em **"Obter perfil de publicação"**
+   - Copie todo o conteúdo do arquivo
+
+2. Crie um secret no GitHub:
+   | Name | Secret |
+   |------|--------|
+   | `AZURE_BACKEND_PUBLISH_PROFILE` | Conteúdo do arquivo |
+
+3. Modifique o workflow `.github/workflows/main_raphamovies-api-hml.yml`:
+   - Remova a seção de login OIDC
+   - Use o publish-profile igual ao frontend
+
+Exemplo de como ficaria o job de deploy:
+
+```yaml
+deploy:
+  runs-on: ubuntu-latest
+  needs: build
+  environment:
+    name: 'Production'
+    url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+  steps:
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v4
+      with:
+        name: .net-app
+        path: ./publish
+
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'raphamovies-api-hml'
+        publish-profile: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
+        package: ./publish
+```
 
 ### Passo 7.4: Executar o Deploy
 
