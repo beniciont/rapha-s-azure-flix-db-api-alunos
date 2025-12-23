@@ -19,7 +19,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddAutoMapper(typeof(Program));
 
 // JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
+var jwtKey = builder.Configuration["Jwt:Secret"] ?? builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key/Secret not configured");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "RaphaMovies";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "RaphaMoviesApp";
 
