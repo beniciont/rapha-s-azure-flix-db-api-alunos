@@ -119,11 +119,29 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Apply migrations on startup (optional - remove in production if you want manual control)
-using (var scope = app.Services.CreateScope())
+// Apply migrations on startup
+// In Production, failing migrations/DB connectivity can crash the app (HTTP 500.30).
+// Default behavior: migrate only in Development. To enable in Production, set:
+// Database__ApplyMigrationsOnStartup=true
+var applyMigrationsOnStartup =
+    app.Environment.IsDevelopment() ||
+    app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup");
+
+if (applyMigrationsOnStartup)
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+        app.Logger.LogInformation("Database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Failed to apply database migrations on startup.");
+        if (app.Environment.IsDevelopment())
+            throw;
+    }
 }
 
 app.Run();
