@@ -2,7 +2,7 @@
 // Altere esta URL para apontar para seu servidor .NET Core no Azure
 export const API_CONFIG = {
   // URL base da API - configure conforme seu ambiente
-  BASE_URL: import.meta.env.VITE_API_URL || 'https://sua-api.azurewebsites.net/api',
+  BASE_URL: import.meta.env.VITE_API_URL || 'https://raphamovies-api-hml-hjcja8cwgph5gyas.canadacentral-01.azurewebsites.net/api',
   
   // Timeout padrão para requisições (em ms)
   TIMEOUT: 30000,
