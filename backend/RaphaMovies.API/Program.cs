@@ -103,21 +103,31 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Enable Swagger in all environments for easier debugging
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Rapha Movies API v1");
-        c.RoutePrefix = string.Empty; // Serve Swagger UI at app root (e.g. https://localhost:56902/)
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Rapha Movies API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Health check endpoint for diagnostics
+app.MapGet("/", () => Results.Ok(new { 
+    status = "healthy", 
+    service = "RaphaMovies API",
+    timestamp = DateTime.UtcNow 
+}));
+
+app.MapGet("/health", () => Results.Ok(new { 
+    status = "healthy",
+    timestamp = DateTime.UtcNow 
+}));
 
 // Apply migrations on startup
 // In Production, failing migrations/DB connectivity can crash the app (HTTP 500.30).
