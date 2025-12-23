@@ -545,7 +545,22 @@ env:
 3. No menu à esquerda, clique em **"Secrets and variables"** → **"Actions"**
 4. Clique em **"New repository secret"**
 
-#### Secrets para o Frontend:
+---
+
+#### 7.3.1 - Secrets para o BACKEND (configuramos no 7.2)
+
+O workflow do backend usa autenticação **OIDC** (sem senha). Quando você conectou via Deployment Center, o Azure criou automaticamente estes secrets:
+- `AZUREAPPSERVICE_CLIENTID_xxx`
+- `AZUREAPPSERVICE_TENANTID_xxx`
+- `AZUREAPPSERVICE_SUBSCRIPTIONID_xxx`
+
+**Verifique se eles existem** no GitHub em Settings → Secrets → Actions.
+
+---
+
+#### 7.3.2 - Secrets para o FRONTEND
+
+Agora configure os secrets do frontend:
 
 **Secret 1:**
 | Campo | Valor |
@@ -581,6 +596,8 @@ Volte ao GitHub:
 | Secret | Cole todo o conteúdo do arquivo |
 
 Clique em **"Add secret"**
+
+---
 
 #### Secrets para o Backend (OIDC - Federated Identity):
 
