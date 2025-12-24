@@ -706,18 +706,36 @@ Depois que a API estiver funcionando no Azure:
 
 **Problema**: O frontend não está autorizado a acessar a API
 
-**Solução**:
-1. Abra `appsettings.json`
-2. Adicione a URL do seu frontend em `Cors:AllowedOrigins`:
-   ```json
-   "Cors": {
-     "AllowedOrigins": [
-       "https://seu-frontend.lovable.app",
-       "https://seu-dominio.com"
-     ]
-   }
-   ```
-3. Republique a aplicação
+**Solução**: Configure as origens permitidas usando **uma** destas opções:
+
+#### Opção 1: Variável de ambiente simples (RECOMENDADO)
+No Azure Portal → App Service → **Configuration** → **Application settings**:
+```
+Nome: CORS_ORIGINS
+Valor: https://seu-frontend.azurewebsites.net,https://seu-dominio.com
+```
+(Separe múltiplas URLs por vírgula, sem espaços)
+
+#### Opção 2: App Settings individual por origem
+```
+Nome: Cors__AllowedOrigins__0
+Valor: https://seu-frontend.azurewebsites.net
+
+Nome: Cors__AllowedOrigins__1  
+Valor: https://outro-dominio.com
+```
+
+#### Opção 3: appsettings.json (menos flexível)
+```json
+"Cors": {
+  "AllowedOrigins": [
+    "https://seu-frontend.lovable.app",
+    "https://seu-dominio.com"
+  ]
+}
+```
+
+Após configurar, **reinicie o App Service** para aplicar as mudanças.
 
 ---
 

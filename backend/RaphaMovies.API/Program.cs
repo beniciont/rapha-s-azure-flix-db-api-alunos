@@ -49,15 +49,30 @@ builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 
-// CORS
+// CORS - Configurável via:
+// 1. appsettings.json: Cors:AllowedOrigins (array)
+// 2. Variável de ambiente: CORS_ORIGINS (separado por vírgula)
+// 3. Azure App Settings: Cors__AllowedOrigins__0, Cors__AllowedOrigins__1, etc.
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
+// Fallback: verificar variável de ambiente CORS_ORIGINS (separada por vírgula)
+if (corsOrigins == null || corsOrigins.Length == 0)
+{
+    var envCorsOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS");
+    if (!string.IsNullOrWhiteSpace(envCorsOrigins))
+    {
+        corsOrigins = envCorsOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
+}
+
+// Default para desenvolvimento local
+corsOrigins ??= new[] { "http://localhost:5173", "http://localhost:3000", "http://localhost:8080" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
-                ?? new[] { "http://localhost:5173", "http://localhost:3000" }
-            )
+        policy.WithOrigins(corsOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
