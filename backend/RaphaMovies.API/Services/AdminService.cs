@@ -135,18 +135,10 @@ public class AdminService : IAdminService
 
         // Check if data already exists
         var existingMoviesCount = await _context.Movies.CountAsync();
-        var existingUsersCount = await _context.Users.CountAsync();
 
-        if (!force && existingMoviesCount > 0)
-        {
-            return new SeedResultDto
-            {
-                Success = false,
-                Message = $"O banco já possui {existingMoviesCount} filme(s). Use force=true para adicionar mesmo assim.",
-                MoviesCreated = 0,
-                UsersCreated = 0
-            };
-        }
+        // Se já houver filmes e não for "force", não adiciona filmes novamente.
+        // (Mas ainda pode criar o admin, caso esteja ausente.)
+        var shouldSeedMovies = force || existingMoviesCount == 0;
 
         // Seed admin user if not exists
         var adminId = Guid.Parse("11111111-1111-1111-1111-111111111111");
@@ -176,23 +168,28 @@ public class AdminService : IAdminService
         }
 
         // Seed movies
-        var moviesToAdd = GetSeedMovies(now);
-        
-        foreach (var movie in moviesToAdd)
+        if (shouldSeedMovies)
         {
-            // Check if movie with same ID or title already exists
-            var exists = await _context.Movies.AnyAsync(m => m.Id == movie.Id || m.Title == movie.Title);
-            if (!exists)
+            var moviesToAdd = GetSeedMovies(now);
+
+            foreach (var movie in moviesToAdd)
             {
-                _context.Movies.Add(movie);
-                result.MoviesCreated++;
+                // Check if movie with same ID or title already exists
+                var exists = await _context.Movies.AnyAsync(m => m.Id == movie.Id || m.Title == movie.Title);
+                if (!exists)
+                {
+                    _context.Movies.Add(movie);
+                    result.MoviesCreated++;
+                }
             }
         }
 
         await _context.SaveChangesAsync();
 
         result.Success = true;
-        result.Message = $"Seed concluído! {result.MoviesCreated} filme(s) e {result.UsersCreated} usuário(s) criados.";
+        result.Message = (result.MoviesCreated == 0 && result.UsersCreated == 0)
+            ? $"Nada a fazer. Banco já possui {existingMoviesCount} filme(s)."
+            : $"Seed concluído! {result.MoviesCreated} filme(s) e {result.UsersCreated} usuário(s) criados.";
 
         return result;
     }
