@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, ArrowLeft, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
-import { movies as initialMovies, Movie, genres } from '@/data/movies';
+import { useMovies, useGenres } from '@/hooks/useMovies';
+import { movieService } from '@/services/movieService';
+import { Movie } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,8 +14,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
-const emptyMovie: Omit<Movie, 'id'> = {
+interface MovieForm {
+  title: string;
+  synopsis: string;
+  year: number;
+  duration: string;
+  genre: string;
+  rating: number;
+  imageUrl: string;
+  backdropUrl: string;
+  trailerUrl?: string;
+  rentalPrice?: number;
+}
+
+const emptyMovie: MovieForm = {
   title: '',
   synopsis: '',
   year: new Date().getFullYear(),
@@ -21,17 +37,26 @@ const emptyMovie: Omit<Movie, 'id'> = {
   genre: '',
   rating: 0,
   imageUrl: '',
-  backdropUrl: ''
+  backdropUrl: '',
+  trailerUrl: '',
+  rentalPrice: 9.90
 };
 
 export default function Admin() {
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [movies, setMovies] = useState<Movie[]>(initialMovies);
+  const queryClient = useQueryClient();
+  
+  const { data: moviesData, isLoading } = useMovies({ pageSize: 100 });
+  const { data: genres = [] } = useGenres();
+  
+  const movies = moviesData?.data ?? [];
+  
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
-  const [newMovie, setNewMovie] = useState<Omit<Movie, 'id'>>(emptyMovie);
+  const [formData, setFormData] = useState<MovieForm>(emptyMovie);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isAdmin) {
     return (
@@ -46,46 +71,88 @@ export default function Admin() {
     );
   }
 
-  const handleSave = () => {
-    if (isEditing && editingMovie) {
-      setMovies(movies.map(m => m.id === editingMovie.id ? editingMovie : m));
-      toast.success('Filme atualizado com sucesso!');
-    } else {
-      const movie: Movie = {
-        ...newMovie,
-        id: String(Date.now())
-      };
-      setMovies([...movies, movie]);
-      toast.success('Filme adicionado com sucesso!');
+  const handleSave = async () => {
+    if (!formData.title || !formData.genre) {
+      toast.error('Preencha título e gênero');
+      return;
     }
-    setDialogOpen(false);
-    setEditingMovie(null);
-    setNewMovie(emptyMovie);
-    setIsEditing(false);
+
+    setIsSaving(true);
+    try {
+      if (isEditing && editingMovie) {
+        await movieService.update({
+          id: editingMovie.id,
+          ...formData,
+          rentalPrice: formData.rentalPrice || 9.90
+        });
+        toast.success('Filme atualizado com sucesso!');
+      } else {
+        await movieService.create({
+          ...formData,
+          rentalPrice: formData.rentalPrice || 9.90
+        });
+        toast.success('Filme adicionado com sucesso!');
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['movies'] });
+      setDialogOpen(false);
+      setEditingMovie(null);
+      setFormData(emptyMovie);
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao salvar filme');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEdit = (movie: Movie) => {
     setEditingMovie(movie);
+    setFormData({
+      title: movie.title,
+      synopsis: movie.synopsis,
+      year: movie.year,
+      duration: movie.duration,
+      genre: movie.genre,
+      rating: movie.rating,
+      imageUrl: movie.imageUrl,
+      backdropUrl: movie.backdropUrl || '',
+      trailerUrl: movie.trailerUrl || '',
+      rentalPrice: movie.rentalPrice || 9.90
+    });
     setIsEditing(true);
     setDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setMovies(movies.filter(m => m.id !== id));
-    toast.success('Filme removido com sucesso!');
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir este filme?')) return;
+    
+    try {
+      await movieService.delete(id);
+      queryClient.invalidateQueries({ queryKey: ['movies'] });
+      toast.success('Filme removido com sucesso!');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao remover filme');
+    }
   };
 
   const handleAdd = () => {
     setEditingMovie(null);
-    setNewMovie(emptyMovie);
+    setFormData(emptyMovie);
     setIsEditing(false);
     setDialogOpen(true);
   };
 
-  const currentMovie = isEditing ? editingMovie : newMovie;
-  const setCurrentMovie = isEditing 
-    ? (movie: Movie | Omit<Movie, 'id'>) => setEditingMovie(movie as Movie)
-    : setNewMovie;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 pt-24 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,16 +184,16 @@ export default function Admin() {
                   <div className="space-y-2">
                     <Label>Título</Label>
                     <Input
-                      value={currentMovie?.title || ''}
-                      onChange={(e) => setCurrentMovie({ ...currentMovie!, title: e.target.value })}
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       placeholder="Nome do filme"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Gênero</Label>
                     <Select
-                      value={currentMovie?.genre || ''}
-                      onValueChange={(value) => setCurrentMovie({ ...currentMovie!, genre: value })}
+                      value={formData.genre}
+                      onValueChange={(value) => setFormData({ ...formData, genre: value })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
@@ -144,27 +211,27 @@ export default function Admin() {
                 <div className="space-y-2">
                   <Label>Sinopse</Label>
                   <Textarea
-                    value={currentMovie?.synopsis || ''}
-                    onChange={(e) => setCurrentMovie({ ...currentMovie!, synopsis: e.target.value })}
+                    value={formData.synopsis}
+                    onChange={(e) => setFormData({ ...formData, synopsis: e.target.value })}
                     placeholder="Descrição do filme"
                     rows={3}
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <Label>Ano</Label>
                     <Input
                       type="number"
-                      value={currentMovie?.year || ''}
-                      onChange={(e) => setCurrentMovie({ ...currentMovie!, year: Number(e.target.value) })}
+                      value={formData.year}
+                      onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Duração</Label>
                     <Input
-                      value={currentMovie?.duration || ''}
-                      onChange={(e) => setCurrentMovie({ ...currentMovie!, duration: e.target.value })}
+                      value={formData.duration}
+                      onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                       placeholder="2h 30min"
                     />
                   </div>
@@ -175,8 +242,18 @@ export default function Admin() {
                       step="0.1"
                       min="0"
                       max="10"
-                      value={currentMovie?.rating || ''}
-                      onChange={(e) => setCurrentMovie({ ...currentMovie!, rating: Number(e.target.value) })}
+                      value={formData.rating}
+                      onChange={(e) => setFormData({ ...formData, rating: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Preço (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.rentalPrice}
+                      onChange={(e) => setFormData({ ...formData, rentalPrice: Number(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -184,8 +261,8 @@ export default function Admin() {
                 <div className="space-y-2">
                   <Label>URL da Imagem (Poster)</Label>
                   <Input
-                    value={currentMovie?.imageUrl || ''}
-                    onChange={(e) => setCurrentMovie({ ...currentMovie!, imageUrl: e.target.value })}
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                     placeholder="https://..."
                   />
                 </div>
@@ -193,14 +270,27 @@ export default function Admin() {
                 <div className="space-y-2">
                   <Label>URL do Backdrop</Label>
                   <Input
-                    value={currentMovie?.backdropUrl || ''}
-                    onChange={(e) => setCurrentMovie({ ...currentMovie!, backdropUrl: e.target.value })}
+                    value={formData.backdropUrl}
+                    onChange={(e) => setFormData({ ...formData, backdropUrl: e.target.value })}
                     placeholder="https://..."
                   />
                 </div>
 
-                <Button onClick={handleSave} className="w-full gap-2">
-                  <Save className="h-4 w-4" />
+                <div className="space-y-2">
+                  <Label>URL do Trailer (YouTube)</Label>
+                  <Input
+                    value={formData.trailerUrl}
+                    onChange={(e) => setFormData({ ...formData, trailerUrl: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                  />
+                </div>
+
+                <Button onClick={handleSave} disabled={isSaving} className="w-full gap-2">
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
                   {isEditing ? 'Salvar Alterações' : 'Adicionar Filme'}
                 </Button>
               </div>
@@ -218,41 +308,51 @@ export default function Admin() {
                 <TableHead>Gênero</TableHead>
                 <TableHead>Ano</TableHead>
                 <TableHead>Nota</TableHead>
+                <TableHead>Preço</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {movies.map((movie) => (
-                <TableRow key={movie.id}>
-                  <TableCell>
-                    <img
-                      src={movie.imageUrl}
-                      alt={movie.title}
-                      className="w-12 h-16 object-cover rounded"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{movie.title}</TableCell>
-                  <TableCell>{movie.genre}</TableCell>
-                  <TableCell>{movie.year}</TableCell>
-                  <TableCell>{movie.rating}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(movie)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(movie.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+              {movies.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Nenhum filme cadastrado
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                movies.map((movie) => (
+                  <TableRow key={movie.id}>
+                    <TableCell>
+                      <img
+                        src={movie.imageUrl}
+                        alt={movie.title}
+                        className="w-12 h-16 object-cover rounded"
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{movie.title}</TableCell>
+                    <TableCell>{movie.genre}</TableCell>
+                    <TableCell>{movie.year}</TableCell>
+                    <TableCell>{movie.rating}</TableCell>
+                    <TableCell>R$ {movie.rentalPrice?.toFixed(2) || '9.90'}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(movie)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(movie.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-8">
-          ⚠️ Modo demonstração: as alterações são apenas visuais e não persistem após recarregar a página.
+          Total: {movies.length} filmes cadastrados
         </p>
       </main>
     </div>
