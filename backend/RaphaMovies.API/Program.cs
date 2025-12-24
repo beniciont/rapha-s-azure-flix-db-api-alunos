@@ -53,6 +53,13 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 // 1. appsettings.json: Cors:AllowedOrigins (array)
 // 2. Variável de ambiente: CORS_ORIGINS (separado por vírgula)
 // 3. Azure App Settings: Cors__AllowedOrigins__0, Cors__AllowedOrigins__1, etc.
+//
+// Para facilitar ambientes de aula/preview (origens dinâmicas), é possível habilitar:
+// - Cors:AllowAnyOrigin=true (ou env CORS_ALLOW_ANY=true)
+var corsAllowAnyOrigin =
+    builder.Configuration.GetValue<bool>("Cors:AllowAnyOrigin") ||
+    string.Equals(Environment.GetEnvironmentVariable("CORS_ALLOW_ANY"), "true", StringComparison.OrdinalIgnoreCase);
+
 var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
 
 // Fallback: verificar variável de ambiente CORS_ORIGINS (separada por vírgula)
@@ -72,10 +79,19 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(corsOrigins)
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+        if (corsAllowAnyOrigin)
+        {
+            // Importante: não usar AllowCredentials com origem liberada
+            policy.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        }
+        else
+        {
+            policy.WithOrigins(corsOrigins)
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        }
     });
 });
 
