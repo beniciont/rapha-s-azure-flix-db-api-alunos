@@ -21,7 +21,10 @@ export const movieService = {
   },
 
   async getByGenre(genre: string): Promise<Movie[]> {
-    return apiClient.get<Movie[]>(API_CONFIG.ENDPOINTS.MOVIES.BY_GENRE(genre));
+    const response = await apiClient.get<PaginatedResponse<Movie>>(
+      API_CONFIG.ENDPOINTS.MOVIES.BY_GENRE(genre)
+    );
+    return response.data;
   },
 
   async search(query: string, params?: Omit<SearchMoviesParams, 'query'>): Promise<PaginatedResponse<Movie>> {
