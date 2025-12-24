@@ -9,4 +9,13 @@ public interface IAdminService
     Task<UserDto?> GetUserByIdAsync(Guid id);
     Task<UserDto?> UpdateUserAsync(Guid id, UpdateUserDto dto);
     Task<bool> DeleteUserAsync(Guid id);
+    Task<SeedResultDto> SeedDatabaseAsync(bool force = false);
+}
+
+public class SeedResultDto
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public int MoviesCreated { get; set; }
+    public int UsersCreated { get; set; }
 }

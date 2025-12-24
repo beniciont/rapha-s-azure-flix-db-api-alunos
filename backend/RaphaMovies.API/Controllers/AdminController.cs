@@ -115,4 +115,16 @@ public class AdminController : ControllerBase
         var result = await _rentalService.GetAllRentalsAsync(page, pageSize);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Popula o banco de dados com filmes de exemplo
+    /// </summary>
+    /// <param name="force">Se true, adiciona filmes mesmo se já existirem dados</param>
+    [HttpPost("seed")]
+    [ProducesResponseType(typeof(SeedResultDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SeedDatabase([FromQuery] bool force = false)
+    {
+        var result = await _adminService.SeedDatabaseAsync(force);
+        return Ok(result);
+    }
 }
