@@ -39,6 +39,13 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
+      - name: Stamp build info (debug)
+        run: |
+          echo "sha=${GITHUB_SHA}" > dist/__build.txt
+          date -u +"built_at=%Y-%m-%dT%H:%M:%SZ" >> dist/__build.txt
+          echo "dist contents:"
+          ls -la dist | sed -n '1,200p'
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -67,3 +74,8 @@ jobs:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: dist/
+
+      - name: Smoke check deployed build
+        run: |
+          echo "Deployed URL: ${{ steps.deploy-to-webapp.outputs.webapp-url }}"
+          curl -fsSL "${{ steps.deploy-to-webapp.outputs.webapp-url }}/__build.txt" || true
