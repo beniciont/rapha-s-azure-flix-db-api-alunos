@@ -4,13 +4,15 @@ import { authService } from '@/services/authService';
 import { toast } from 'sonner';
 import { ApiError } from '@/types/api';
 
-export function useRentals() {
-  const isAuthenticated = authService.isAuthenticated();
+export function useRentals(enabled: boolean = true) {
+  const hasToken = authService.isAuthenticated();
   
   return useQuery({
     queryKey: ['rentals', 'user'],
     queryFn: () => rentalService.getUserRentals(),
-    enabled: isAuthenticated,
+    enabled: enabled && hasToken,
+    retry: false, // Don't retry on 401 errors
+    staleTime: 30000, // Cache for 30 seconds
   });
 }
 

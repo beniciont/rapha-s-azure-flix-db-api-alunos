@@ -11,10 +11,11 @@ import { toast } from 'sonner';
 export default function MovieDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   const { data: movie, isLoading } = useMovie(id || '');
-  const { data: rentals } = useRentals();
+  // Only fetch rentals when user is authenticated and auth state is loaded
+  const { data: rentals } = useRentals(isAuthenticated && !authLoading);
   const createRental = useCreateRental();
 
   const alreadyRented = rentals?.some(

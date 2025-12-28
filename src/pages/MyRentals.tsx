@@ -7,9 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 
 export default function MyRentals() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { data: rentals, isLoading } = useRentals();
+  const { data: rentals, isLoading } = useRentals(isAuthenticated && !authLoading);
   const returnRental = useReturnRental();
 
   if (!isAuthenticated) {
