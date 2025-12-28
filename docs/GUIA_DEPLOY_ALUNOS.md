@@ -134,7 +134,25 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 
 3. Clique **"Salvar"** → **"Continuar"**
 
-#### 3.5 Obter Publish Profile
+#### 3.5 Configurar CORS (Cross-Origin)
+> 💡 CORS permite que o Frontend se comunique com o Backend. Sem isso, o site não carrega os filmes!
+
+1. Ainda no App Service do Backend
+2. Menu esquerdo: **"Variáveis de ambiente"** (ou "Configuração" → "Configurações de aplicativo")
+3. Clique em **"+ Adicionar"** e crie a seguinte variável:
+
+| Nome | Valor |
+|------|-------|
+| `CORS_ALLOW_ANY` | `true` |
+
+> ⚠️ **Alternativa mais segura:** Em vez de `CORS_ALLOW_ANY`, você pode usar:
+> - **Nome:** `CORS_ORIGINS`
+> - **Valor:** `https://SEU-FRONTEND.azurewebsites.net` (ex: `https://raphamovies-frontend001.azurewebsites.net`)
+
+4. Clique **"Salvar"** → **"Continuar"**
+5. **Reinicie o App Service** (clique em "Reiniciar" no topo da página)
+
+#### 3.6 Obter Publish Profile
 1. Na página principal do App Service
 2. Clique em **"Baixar perfil de publicação"** (Download publish profile)
 3. Um arquivo `.PublishSettings` será baixado
@@ -294,6 +312,7 @@ Você acabou de fazer deploy de uma aplicação fullstack na nuvem! 🚀
 - [ ] App Service Backend criado e configurado
 - [ ] App Service Frontend criado
 - [ ] Fork do repositório feito
+- [ ] CORS configurado no Backend
 - [ ] 5 Secrets configurados no GitHub
 - [ ] Deploy do Backend executado ✅
 - [ ] Deploy do Frontend executado ✅
