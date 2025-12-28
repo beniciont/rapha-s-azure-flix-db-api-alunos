@@ -70,16 +70,16 @@ public class AuthService : IAuthService
         try
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!);
-            
+            var key = Encoding.UTF8.GetBytes(GetJwtKey());
+
             var principal = tokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidIssuer = _configuration["Jwt:Issuer"],
-                ValidAudience = _configuration["Jwt:Audience"],
+                ValidIssuer = GetJwtIssuer(),
+                ValidAudience = GetJwtAudience(),
                 ValidateLifetime = false // Don't validate lifetime for refresh token
             }, out SecurityToken validatedToken);
 
@@ -121,6 +121,19 @@ public class AuthService : IAuthService
         };
     }
 
+    private string GetJwtKey()
+    {
+        var key = _configuration["Jwt:Secret"] ?? _configuration["Jwt:Key"]; // Keep compatibility with both keys
+        if (string.IsNullOrWhiteSpace(key))
+            throw new InvalidOperationException("JWT Key/Secret not configured");
+
+        return key;
+    }
+
+    private string GetJwtIssuer() => _configuration["Jwt:Issuer"] ?? "RaphaMovies";
+
+    private string GetJwtAudience() => _configuration["Jwt:Audience"] ?? "RaphaMoviesApp";
+
     private AuthResponseDto GenerateAuthResponse(User user)
     {
         var expirationDays = int.Parse(_configuration["Jwt:ExpirationInDays"] ?? "7");
@@ -148,7 +161,7 @@ public class AuthService : IAuthService
 
     private string GenerateJwtToken(User user, DateTime expiresAt)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(GetJwtKey()));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
@@ -166,8 +179,8 @@ public class AuthService : IAuthService
         }
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
+            issuer: GetJwtIssuer(),
+            audience: GetJwtAudience(),
             claims: claims,
             expires: expiresAt,
             signingCredentials: credentials
@@ -179,7 +192,7 @@ public class AuthService : IAuthService
     private string GenerateRefreshToken(User user)
     {
         // Generate a refresh token with longer expiration
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(GetJwtKey()));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
@@ -189,8 +202,8 @@ public class AuthService : IAuthService
         };
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
+            issuer: GetJwtIssuer(),
+            audience: GetJwtAudience(),
             claims: claims,
             expires: DateTime.UtcNow.AddDays(30),
             signingCredentials: credentials
