@@ -40,8 +40,8 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 1. No Portal Azure, clique em **"Grupos de recursos"** (menu esquerdo)
 2. Clique em **"+ Criar"**
 3. Preencha:
-   - **Grupo de recursos:** `rg-raphamovies-SEUNOME` (ex: rg-raphamovies-joao)
-   - **Região:** `Brazil South`
+   - **Grupo de recursos:** `rg-app-prd-uks-001` (ex: rg-raphamovies-joao)
+   - **Região:** `UK South`
 4. Clique em **"Revisar + criar"**
 5. Clique em **"Criar"**
 
@@ -64,7 +64,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 | **Nome do servidor** | `srv-raphamovies-db001` |
 | **Região** | `UK South` |
 | **Método de autenticação** | Usar autenticação SQL |
-| **Login do administrador** | `sqladmin` |
+| **Login do administrador** | `adminsql` |
 | **Senha** | Partiunuvem@2026 (anote!) |
 
 5. Clique em **"Revisar + criar"** → **"Criar"**
@@ -75,7 +75,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 2. No menu esquerdo, clique em **"Bancos de dados SQL"**
 3. Clique em **"+ Criar banco de dados"**
 4. Configure:
-   - **Nome:** `RaphaMoviesDB`
+   - **Nome:** `sampledb`
    - **Computação:** Clique em "Configurar" → Selecione **"Basic"** → **"Aplicar"**
 5. Clique em **"Revisar + criar"** → **"Criar"**
 
@@ -85,10 +85,22 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 3. Marque ☑️ **"Permitir que serviços do Azure acessem este servidor"**
 4. Clique em **"Salvar"**
 
+#### 2.5 Configurar VM com SSMS
+1. Criar uma VNET com estrutura de Subnet
+2. Criar uma VM na mesma região
+3. Instalar o SSMS
+4. Baixa o Database já pronto em : https://fdddfdf
+5. Importar o DB no Azure SQL Database
+6. 
 
 ### 🔷 ETAPA 3: Criar App Service do Backend (5 min)
 
-#### 3.1 Criar o App Service
+#### 3.1 Criar App Service Plan:
+- Clique em **"Criar novo App Service Plan"**
+- Nome: `aplan-raphamovies001`
+- Clique em **"Alterar tamanho"** → Selecione **"B1"** (Basic) → **"Aplicar"**
+
+#### 3.2 Criar o App Service
 1. Clique em **"+ Criar um recurso"**
 2. Pesquise: **App Service**
 3. Selecione **"Aplicativo Web"** → **"Criar"**
@@ -97,18 +109,13 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 | Campo | Valor |
 |-------|-------|
 | **Grupo de recursos** | Selecione o seu |
-| **Nome** | `raphamovies-api-bend001` |
+| **Nome** | `raphamovies-api-001` |
 | **Publicar** | Código |
 | **Pilha de runtime** | `.NET 8 (LTS)` |
 | **Sistema operacional** | Windows |
 | **Região** | `UK South` |
 
-**Plano do App Service:**
-- Clique em **"Criar novo"**
-- Nome: `aplan-raphamovies001`
-- Clique em **"Alterar tamanho"** → Selecione **"B1"** (Basic) → **"Aplicar"**
-
-5. Clique em **"Revisar + criar"** → **"Criar"**
+4. Clique em **"Revisar + criar"** → **"Criar"**
 
 #### 3.3 Configurar Connection String
 1. Vá para o App Service criado
@@ -131,32 +138,23 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 | `Jwt__Audience` | `RaphaMovies.Frontend` |
 | `Jwt__ExpirationMinutes` | `60` |
 | `ASPNETCORE_ENVIRONMENT` | `Production` |
-
-3. Clique **"Salvar"** → **"Continuar"**
-
-#### 3.5 Configurar CORS (Cross-Origin)
-> 💡 CORS permite que o Frontend se comunique com o Backend. Sem isso, o site não carrega os filmes!
-
-1. Ainda no App Service do Backend
-2. Menu esquerdo: **"Variáveis de ambiente"** (ou "Configuração" → "Configurações de aplicativo")
-3. Clique em **"+ Adicionar"** e crie a seguinte variável:
-
-| Nome | Valor |
-|------|-------|
 | `CORS_ALLOW_ANY` | `true` |
+
 
 > ⚠️ **Alternativa mais segura:** Em vez de `CORS_ALLOW_ANY`, você pode usar:
 > - **Nome:** `CORS_ORIGINS`
 > - **Valor:** `https://SEU-FRONTEND.azurewebsites.net` (ex: `https://raphamovies-frontend001.azurewebsites.net`)
 
-4. Clique **"Salvar"** → **"Continuar"**
-5. **Reinicie o App Service** (clique em "Reiniciar" no topo da página)
+3. Clique **"Salvar"** → **"Continuar"**
+4. **Reinicie o App Service** (clique em "Reiniciar" no topo da página)
 
 #### 3.6 Obter Publish Profile
 1. Na página principal do App Service
-2. Clique em **"Baixar perfil de publicação"** (Download publish profile)
-3. Um arquivo `.PublishSettings` será baixado
-4. **Abra o arquivo com Bloco de Notas** e copie TODO o conteúdo
+2. Vá em Configuration e marque a opção SCM Basic Auth Publishing Credentials
+3. Retorno no menmu Overview
+4. Clique em **"Baixar perfil de publicação"** (Download publish profile)
+5. Um arquivo `.PublishSettings` será baixado
+6. **Abra o arquivo com Bloco de Notas** e copie TODO o conteúdo
 
 ✅ **Backend configurado!**
 
@@ -171,7 +169,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 | Campo | Valor |
 |-------|-------|
 | **Grupo de recursos** | Selecione o seu |
-| **Nome** | `raphamovies-frontend001` |
+| **Nome** | `raphamovies-frontend-001` |
 | **Publicar** | Código |
 | **Pilha de runtime** | `Node 20 LTS` |
 | **Sistema operacional** | Windows |
@@ -182,8 +180,10 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 
 #### 4.3 Obter Publish Profile
 1. Vá para o App Service do frontend
-2. Clique em **"Baixar perfil de publicação"**
-3. Abra com Bloco de Notas e copie TODO o conteúdo
+2. 2. Vá em Configuration e marque a opção SCM Basic Auth Publishing Credentials
+3. Retorno no menmu Overview
+3. Clique em **"Baixar perfil de publicação"**
+4. Abra com Bloco de Notas e copie TODO o conteúdo
 
 ✅ **Frontend configurado!**
 
