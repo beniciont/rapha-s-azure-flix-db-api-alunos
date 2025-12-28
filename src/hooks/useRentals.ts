@@ -1,12 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { rentalService } from '@/services/rentalService';
+import { authService } from '@/services/authService';
 import { toast } from 'sonner';
 import { ApiError } from '@/types/api';
 
 export function useRentals() {
+  const isAuthenticated = authService.isAuthenticated();
+  
   return useQuery({
     queryKey: ['rentals', 'user'],
     queryFn: () => rentalService.getUserRentals(),
+    enabled: isAuthenticated,
   });
 }
 
