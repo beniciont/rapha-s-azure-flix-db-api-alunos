@@ -197,11 +197,12 @@ Clique em **"New repository secret"** para cada um:
 | Nome do Secret | Valor |
 |----------------|-------|
 | `AZURE_WEBAPP_PUBLISH_PROFILE` | Conteúdo do PublishSettings do **Frontend** |
-| `AZURE_WEBAPP_NAME` | `raphamovies-frontend-SEUNOME` |
+| `AZURE_WEBAPP_NAME` | Nome do App Service do Frontend (ex: `raphamovies-frontend001`) |
 | `AZURE_BACKEND_PUBLISH_PROFILE` | Conteúdo do PublishSettings do **Backend** |
-| `VITE_API_URL` | `https://raphamovies-api-SEUNOME.azurewebsites.net` |
+| `AZURE_BACKEND_WEBAPP_NAME` | Nome do App Service do Backend (ex: `raphamovies-api-bend001`) |
+| `VITE_API_URL` | `https://SEU-BACKEND-NAME.azurewebsites.net` |
 
-> ⚠️ **ATENÇÃO:** Substitua "SEUNOME" pelos nomes reais que você usou nos App Services!
+> ⚠️ **ATENÇÃO:** Use os nomes **exatos** dos App Services que você criou no Azure!
 
 ✅ **Secrets configurados!**
 
@@ -291,7 +292,7 @@ Você acabou de fazer deploy de uma aplicação fullstack na nuvem! 🚀
 - [ ] App Service Backend criado e configurado
 - [ ] App Service Frontend criado
 - [ ] Fork do repositório feito
-- [ ] 4 Secrets configurados no GitHub
+- [ ] 5 Secrets configurados no GitHub
 - [ ] Deploy do Backend executado ✅
 - [ ] Deploy do Frontend executado ✅
 - [ ] Site funcionando!
