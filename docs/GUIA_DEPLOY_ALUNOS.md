@@ -200,9 +200,11 @@ Clique em **"New repository secret"** para cada um:
 | `AZURE_WEBAPP_NAME` | Nome do App Service do Frontend (ex: `raphamovies-frontend001`) |
 | `AZURE_BACKEND_PUBLISH_PROFILE` | Conteúdo do PublishSettings do **Backend** |
 | `AZURE_BACKEND_WEBAPP_NAME` | Nome do App Service do Backend (ex: `raphamovies-api-bend001`) |
-| `VITE_API_URL` | `https://SEU-BACKEND-NAME.azurewebsites.net` |
+| `VITE_API_URL` | `https://SEU-BACKEND-NAME.azurewebsites.net/api` |
 
-> ⚠️ **ATENÇÃO:** Use os nomes **exatos** dos App Services que você criou no Azure!
+> ⚠️ **ATENÇÃO IMPORTANTE:**
+> - Use os nomes **exatos** dos App Services que você criou no Azure!
+> - O `VITE_API_URL` **DEVE** terminar com `/api` (ex: `https://raphamovies-api-bend001.azurewebsites.net/api`)
 
 ✅ **Secrets configurados!**
 
