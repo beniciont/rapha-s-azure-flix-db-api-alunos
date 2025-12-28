@@ -1,13 +1,13 @@
 # 🎬 Rapha Movies - Guia de Deploy para Alunos
 
 > **Tempo estimado:** 30-45 minutos  
-> **Nível:** Iniciante (sem conhecimento prévio necessário)
-
+> **Nível:** Intermediário 
 ---
 
 ## 📋 O que você vai precisar
 
 ✅ Uma conta Microsoft 
+
 ✅ Uma conta no GitHub (pode criar gratuitamente)  
 
 
@@ -19,12 +19,12 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  🖥️  FRONTEND           📡 BACKEND (API)        🗄️ BANCO     │
-│  (Telas que você vê)    (Lógica do sistema)    (Armazena    │
+│  🖥️  FRONTEND           📡 BACKEND (API)         🗄️BANCO    │
+│  (Telas que você vê)    (Lógica do sistema)    (Armazena     │
 │                                                  dados)      │
 │                                                              │
-│  React/TypeScript       .NET 8                 SQL Server   │
-│  App Service            App Service            SQL Database │
+│  React/TypeScript       .NET 8                 SQL Server    │
+│  App Service            App Service            SQL Database  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -91,7 +91,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 3. Instalar o SSMS
 4. Baixa o Database já pronto em : https://fdddfdf
 5. Importar o DB no Azure SQL Database
-6. 
+
 
 ### 🔷 ETAPA 3: Criar App Service do Backend (5 min)
 
