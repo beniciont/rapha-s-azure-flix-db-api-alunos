@@ -23,7 +23,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 │  (Telas que você vê)    (Lógica do sistema)    (Armazena     │
 │                                                  dados)      │
 │                                                              │
-│  React/TypeScript       .NET 8                 SQL Server    │
+│  React/.NET 8           .NET 8                 SQL Server    │
 │  App Service            App Service            SQL Database  │
 └──────────────────────────────────────────────────────────────┘
 ```
