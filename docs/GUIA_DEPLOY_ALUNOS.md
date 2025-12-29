@@ -171,7 +171,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 | **Grupo de recursos** | Selecione o seu |
 | **Nome** | `raphamovies-frontend-001` |
 | **Publicar** | Código |
-| **Pilha de runtime** | `Node 20 LTS` |
+| **Pilha de runtime** | `.NET 8 (LTS)` |
 | **Sistema operacional** | Windows |
 | **Região** | `Canada Central` |
 | **Plano** | Selecione o que já criou (`plan-raphamovies-SEUNOME`) |
