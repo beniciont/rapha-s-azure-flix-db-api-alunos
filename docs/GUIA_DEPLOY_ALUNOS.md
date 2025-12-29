@@ -89,7 +89,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 1. Criar uma VNET com estrutura de Subnet
 2. Criar uma VM na mesma região
 3. Instalar o SSMS
-4. Baixa o Database já pronto em : https://fdddfdf
+4. Baixa o Database já pronto em : https://stoposgraduacaotftec.blob.core.windows.net/arquivos-pos/RaphaMoviesDB.bacpac
 5. Importar o DB no Azure SQL Database
 
 
