@@ -40,8 +40,8 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 1. No Portal Azure, clique em **"Grupos de recursos"** (menu esquerdo)
 2. Clique em **"+ Criar"**
 3. Preencha:
-   - **Grupo de recursos:** `rg-app-prd-uks-001` (ex: rg-raphamovies-joao)
-   - **Região:** `UK South`
+   - **Grupo de recursos:** `rg-app-prd-uks-001` (ex: rg-prd-app-cac001)
+   - **Região:** `Canada Central`
 4. Clique em **"Revisar + criar"**
 5. Clique em **"Criar"**
 
@@ -61,8 +61,8 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 | Campo | O que colocar |
 |-------|---------------|
 | **Grupo de recursos** | Selecione o que você criou |
-| **Nome do servidor** | `srv-raphamovies-db001` |
-| **Região** | `UK South` |
+| **Nome do servidor** | `srv-raphamoviesdb-001` |
+| **Região** | `Canada Central` |
 | **Método de autenticação** | Usar autenticação SQL |
 | **Login do administrador** | `adminsql` |
 | **Senha** | Partiunuvem@2026 (anote!) |
@@ -97,7 +97,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 
 #### 3.1 Criar App Service Plan:
 - Clique em **"Criar novo App Service Plan"**
-- Nome: `aplan-raphamovies001`
+- Nome: `aplan-raphamovies-001`
 - Clique em **"Alterar tamanho"** → Selecione **"B1"** (Basic) → **"Aplicar"**
 
 #### 3.2 Criar o App Service
@@ -113,7 +113,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 | **Publicar** | Código |
 | **Pilha de runtime** | `.NET 8 (LTS)` |
 | **Sistema operacional** | Windows |
-| **Região** | `UK South` |
+| **Região** | `Canada Central` |
 
 4. Clique em **"Revisar + criar"** → **"Criar"**
 
@@ -173,7 +173,7 @@ Você vai publicar um sistema de locadora de filmes na internet. O sistema tem 3
 | **Publicar** | Código |
 | **Pilha de runtime** | `Node 20 LTS` |
 | **Sistema operacional** | Windows |
-| **Região** | `UK South` |
+| **Região** | `Canada Central` |
 | **Plano** | Selecione o que já criou (`plan-raphamovies-SEUNOME`) |
 
 3. **"Revisar + criar"** → **"Criar"**
